@@ -1,0 +1,61 @@
+{
+  "private": true,
+  "retool": {
+    "app": {
+      "uuid": "b3d68da4-a541-11f1-9a7c-afa848f4f003",
+      "name": null,
+      "resourceReferencesByFile": {
+        "/backend/floorsheet/getFloorsheetRaw.ts": [
+          {
+            "name": "6babd873-a56c-45ce-b792-11f330d2b1ea",
+            "displayName": "Grafana",
+            "type": "cockroachdb"
+          }
+        ],
+        "/backend/user.d.ts": [],
+        "/backend/floorsheet/getFloorsheetStats.ts": [
+          {
+            "name": "6babd873-a56c-45ce-b792-11f330d2b1ea",
+            "displayName": "Grafana",
+            "type": "cockroachdb"
+          }
+        ],
+        "/backend/floorsheet/getBrokerAnalysis.ts": [
+          {
+            "name": "6babd873-a56c-45ce-b792-11f330d2b1ea",
+            "displayName": "Grafana",
+            "type": "cockroachdb"
+          }
+        ],
+        "/backend/floorsheet/getBrokerNetwork.ts": [
+          {
+            "name": "6babd873-a56c-45ce-b792-11f330d2b1ea",
+            "displayName": "Grafana",
+            "type": "cockroachdb"
+          }
+        ],
+        "/backend/floorsheet/getSymbolAnalysis.ts": [
+          {
+            "name": "6babd873-a56c-45ce-b792-11f330d2b1ea",
+            "displayName": "Grafana",
+            "type": "cockroachdb"
+          }
+        ],
+        "/backend/floorsheet/getTimePatterns.ts": [
+          {
+            "name": "6babd873-a56c-45ce-b792-11f330d2b1ea",
+            "displayName": "Grafana",
+            "type": "cockroachdb"
+          }
+        ],
+        "/backend/floorsheet/getTradeSizeAnalysis.ts": [
+          {
+            "name": "6babd873-a56c-45ce-b792-11f330d2b1ea",
+            "displayName": "Grafana",
+            "type": "cockroachdb"
+          }
+        ]
+      }
+    }
+  }
+}
