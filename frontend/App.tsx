@@ -6,6 +6,7 @@ import { cn } from './lib/shadcn/utils'
 import { ThemeToggle } from './components/ThemeToggle'
 import { CommandPalette } from './components/CommandPalette'
 import { WatchlistBar } from './components/WatchlistBar'
+import { MobileBottomNav } from './components/MobileBottomNav'
 import './styles/effects.css'
 
 const Floorsheet = lazy(() => import('./pages/Floorsheet'))
@@ -98,7 +99,7 @@ export default function App() {
         </div>
       </nav>
       <WatchlistBar onOpenSearch={() => setPaletteOpen(true)} />
-      <div className="relative z-10">
+      <div className="relative z-10 pb-20 md:pb-0">
         <Suspense fallback={<PageFallback />}>
           <Routes>
             <Route path="/" element={<Floorsheet />} />
@@ -113,6 +114,7 @@ export default function App() {
         </Suspense>
       </div>
 
+      <MobileBottomNav />
       <CommandPalette isOpen={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </div>
   )

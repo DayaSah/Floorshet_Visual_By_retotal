@@ -1,0 +1,18 @@
+{
+  "name": "NEPSE Floorsheet Visualizer",
+  "short_name": "Floorsheet",
+  "description": "High-performance interactive visualizer for Nepal Stock Exchange (NEPSE) floorsheet trading data, smart money accumulation, and whale trades.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0F19",
+  "theme_color": "#0B0F19",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
