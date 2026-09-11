@@ -22,7 +22,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { ArrowDown, ArrowUp, ArrowUpDown, Download, RefreshCw, TrendingDown, TrendingUp, Wallet } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, Download, RefreshCw, Star, TrendingDown, TrendingUp, Wallet } from 'lucide-react'
 import { useGetSymbolAnalysis } from '../hooks/backend/floorsheet'
 import { Button } from '../lib/shadcn/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../lib/shadcn/select'
@@ -33,6 +33,7 @@ import { SignBadge } from '../components/SignBadge'
 import { CHART_PRIMARY, signColor } from '../utils/chartColors'
 import { formatCompactNumber, formatCurrency, formatDay, formatNumber } from '../utils/format'
 import { exportToCsv } from '../utils/csvExport'
+import { getWatchlist, subscribeWatchlist, toggleSymbolWatchlist } from '../utils/watchlist'
 
 interface SymbolRankingRow {
   symbol: string
@@ -62,6 +63,11 @@ export default function SymbolAnalysis() {
   const urlSymbol = searchParams.get('symbol')?.trim().toUpperCase() || ''
   const [selectedSymbol, setSelectedSymbol] = useState<string>(urlSymbol)
   const [sorting, setSorting] = useState<SortingState>([{ id: 'totalAmount', desc: true }])
+  const [watchlist, setWatchlist] = useState(getWatchlist)
+
+  useEffect(() => {
+    return subscribeWatchlist(setWatchlist)
+  }, [])
 
   const handleSelectSymbol = (symbol: string) => {
     setSelectedSymbol(symbol)
@@ -142,14 +148,27 @@ export default function SymbolAnalysis() {
         header: 'Symbol',
         cell: ({ getValue }) => {
           const sym = getValue<string>()
+          const isStarred = watchlist.symbols.includes(sym)
           return (
-            <button
-              onClick={() => handleSelectSymbol(sym)}
-              className="font-semibold text-primary hover:underline hover:opacity-80 transition-opacity text-left cursor-pointer"
-              title={`Deep dive into ${sym}`}
-            >
-              {sym}
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  toggleSymbolWatchlist(sym)
+                }}
+                className="text-muted-foreground hover:text-warning transition-colors p-0.5 cursor-pointer"
+                title={isStarred ? 'Remove from Watchlist' : 'Add to Watchlist'}
+              >
+                <Star className={`w-3.5 h-3.5 ${isStarred ? 'text-warning fill-warning' : ''}`} />
+              </button>
+              <button
+                onClick={() => handleSelectSymbol(sym)}
+                className="font-semibold text-primary hover:underline hover:opacity-80 transition-opacity text-left cursor-pointer"
+                title={`Deep dive into ${sym}`}
+              >
+                {sym}
+              </button>
+            </div>
           )
         },
       },
@@ -362,7 +381,18 @@ export default function SymbolAnalysis() {
         <GlassCard className="mb-6">
           <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
             <div>
-              <h2 className="text-lg font-semibold">Symbol Deep Dive</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-semibold">Symbol Deep Dive</h2>
+                {selectedSymbol && (
+                  <button
+                    onClick={() => toggleSymbolWatchlist(selectedSymbol)}
+                    className="p-1 text-muted-foreground hover:text-warning transition-colors cursor-pointer"
+                    title={watchlist.symbols.includes(selectedSymbol) ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                  >
+                    <Star className={`w-4 h-4 ${watchlist.symbols.includes(selectedSymbol) ? 'text-warning fill-warning' : ''}`} />
+                  </button>
+                )}
+              </div>
               <p className="text-sm text-muted-foreground">Select a symbol to see its trade activity trend</p>
             </div>
             <Select

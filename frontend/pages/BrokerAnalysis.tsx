@@ -20,7 +20,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { ArrowDown, ArrowUp, ArrowUpDown, Download, RefreshCw, TrendingDown, TrendingUp, Users } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, Download, RefreshCw, Star, TrendingDown, TrendingUp, Users } from 'lucide-react'
 import { useGetBrokerAnalysis } from '../hooks/backend/floorsheet'
 import { Button } from '../lib/shadcn/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../lib/shadcn/select'
@@ -32,6 +32,7 @@ import { getBrokerLabel } from '../utils/brokerNames'
 import { CHART_DESTRUCTIVE, CHART_PRIMARY, CHART_SUCCESS, signColor } from '../utils/chartColors'
 import { formatCompactNumber, formatCurrency, formatDay, formatNumber } from '../utils/format'
 import { exportToCsv } from '../utils/csvExport'
+import { getWatchlist, subscribeWatchlist, toggleBrokerWatchlist } from '../utils/watchlist'
 
 interface BrokerRankingRow {
   broker: string
@@ -61,6 +62,11 @@ export default function BrokerAnalysis() {
   const urlBroker = searchParams.get('broker')?.trim() || ''
   const [selectedBroker, setSelectedBroker] = useState<string>(urlBroker)
   const [sorting, setSorting] = useState<SortingState>([{ id: 'turnover', desc: true }])
+  const [watchlist, setWatchlist] = useState(getWatchlist)
+
+  useEffect(() => {
+    return subscribeWatchlist(setWatchlist)
+  }, [])
 
   const handleSelectBroker = (broker: string) => {
     setSelectedBroker(broker)
@@ -129,14 +135,27 @@ export default function BrokerAnalysis() {
         header: 'Broker',
         cell: ({ row }) => {
           const b = row.original
+          const isStarred = watchlist.brokers.includes(b.broker)
           return (
-            <button
-              onClick={() => handleSelectBroker(b.broker)}
-              className="font-semibold text-primary hover:underline hover:opacity-80 transition-opacity text-left cursor-pointer"
-              title={`Analyze broker #${b.broker}`}
-            >
-              {b.label}
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  toggleBrokerWatchlist(b.broker)
+                }}
+                className="text-muted-foreground hover:text-warning transition-colors p-0.5 cursor-pointer"
+                title={isStarred ? 'Remove from Watchlist' : 'Add to Watchlist'}
+              >
+                <Star className={`w-3.5 h-3.5 ${isStarred ? 'text-warning fill-warning' : ''}`} />
+              </button>
+              <button
+                onClick={() => handleSelectBroker(b.broker)}
+                className="font-semibold text-primary hover:underline hover:opacity-80 transition-opacity text-left cursor-pointer"
+                title={`Analyze broker #${b.broker}`}
+              >
+                {b.label}
+              </button>
+            </div>
           )
         },
       },
@@ -339,7 +358,18 @@ export default function BrokerAnalysis() {
         <GlassCard className="mb-6">
           <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
             <div>
-              <h2 className="text-lg font-semibold">Broker Deep Dive</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-semibold">Broker Deep Dive</h2>
+                {selectedBroker && (
+                  <button
+                    onClick={() => toggleBrokerWatchlist(selectedBroker)}
+                    className="p-1 text-muted-foreground hover:text-warning transition-colors cursor-pointer"
+                    title={watchlist.brokers.includes(selectedBroker) ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                  >
+                    <Star className={`w-4 h-4 ${watchlist.brokers.includes(selectedBroker) ? 'text-warning fill-warning' : ''}`} />
+                  </button>
+                )}
+              </div>
               <p className="text-sm text-muted-foreground">
                 Daily buy (green), sell (red), and net position (line) for a selected broker
               </p>

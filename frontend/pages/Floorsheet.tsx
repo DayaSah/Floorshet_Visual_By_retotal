@@ -9,7 +9,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, Download, RefreshCw, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, Download, RefreshCw, Star, X } from 'lucide-react'
 import { useGetFloorsheetRaw } from '../hooks/backend/floorsheet'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../lib/shadcn/table'
 import { Button } from '../lib/shadcn/button'
@@ -18,6 +18,7 @@ import { GlassCard } from '../components/GlassCard'
 import { getBrokerLabel } from '../utils/brokerNames'
 import { formatNumber, formatTradeTime } from '../utils/format'
 import { exportToCsv } from '../utils/csvExport'
+import { getWatchlist, subscribeWatchlist } from '../utils/watchlist'
 
 interface FloorsheetRow {
   contract_id: string
@@ -38,6 +39,12 @@ export default function Floorsheet() {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [serverPage, setServerPage] = useState(1)
+  const [watchlistOnly, setWatchlistOnly] = useState(false)
+  const [watchlist, setWatchlist] = useState(getWatchlist)
+
+  useEffect(() => {
+    return subscribeWatchlist(setWatchlist)
+  }, [])
 
   useEffect(() => {
     trigger()
@@ -55,6 +62,12 @@ export default function Floorsheet() {
     const symbolQuery = symbolFilter.trim().toUpperCase()
     const brokerQuery = brokerFilter.trim()
     return rows.filter((row: FloorsheetRow) => {
+      if (watchlistOnly) {
+        const matchesWatchlistSymbol = watchlist.symbols.includes(row.symbol.toUpperCase())
+        const matchesWatchlistBroker =
+          watchlist.brokers.includes(row.buyer_broker) || watchlist.brokers.includes(row.seller_broker)
+        if (!matchesWatchlistSymbol && !matchesWatchlistBroker) return false
+      }
       const matchesSymbol = symbolQuery === '' || row.symbol.toUpperCase().includes(symbolQuery)
       const matchesBroker =
         brokerQuery === '' || row.buyer_broker === brokerQuery || row.seller_broker === brokerQuery
@@ -63,7 +76,7 @@ export default function Floorsheet() {
       const matchesEnd = endDate === '' || tradeDate <= endDate
       return matchesSymbol && matchesBroker && matchesStart && matchesEnd
     })
-  }, [data, symbolFilter, brokerFilter, startDate, endDate])
+  }, [data, symbolFilter, brokerFilter, startDate, endDate, watchlistOnly, watchlist])
 
   const columns = useMemo<ColumnDef<FloorsheetRow>[]>(
     () => [
@@ -268,7 +281,19 @@ export default function Floorsheet() {
                 className="w-40 bg-background/60"
               />
             </div>
-            {symbolFilter || brokerFilter || startDate || endDate ? (
+            <Button
+              variant={watchlistOnly ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setWatchlistOnly((prev) => !prev)}
+              className={`gap-1.5 h-9 transition-all cursor-pointer ${
+                watchlistOnly ? 'bg-warning text-warning-foreground hover:bg-warning/90' : ''
+              }`}
+              title="Show only starred symbols and brokers"
+            >
+              <Star className={`w-3.5 h-3.5 ${watchlistOnly ? 'fill-current' : 'text-warning fill-warning'}`} />
+              Watchlist Only
+            </Button>
+            {symbolFilter || brokerFilter || startDate || endDate || watchlistOnly ? (
               <Button
                 variant="ghost"
                 size="sm"
@@ -277,8 +302,9 @@ export default function Floorsheet() {
                   setBrokerFilter('')
                   setStartDate('')
                   setEndDate('')
+                  setWatchlistOnly(false)
                 }}
-                className="gap-1 text-muted-foreground"
+                className="gap-1 text-muted-foreground cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
                 Clear filters
