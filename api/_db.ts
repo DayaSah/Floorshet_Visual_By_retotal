@@ -54,10 +54,14 @@ export async function getCachedOrFetch<T>(
 }
 
 /**
- * Standard caching headers for Vercel Edge CDN:
- * - Serves from Edge CDN for s-maxage seconds
- * - Revalidates in background (stale-while-revalidate) for up to 1 day
+ * High-performance caching headers for Vercel Edge CDN and client browsers:
+ * - maxAge (default 5 min): Tells the user's browser to reuse the response locally with 0 network calls.
+ * - sMaxAge (default 24h): Tells Vercel's Edge CDN to cache globally across all edge regions.
+ * - stale-while-revalidate (7 days): Tells Vercel to serve cached data instantly while refreshing in background.
  */
-export function setCacheHeaders(res: any, sMaxAge = 300) {
-  res.setHeader('Cache-Control', `public, s-maxage=${sMaxAge}, stale-while-revalidate=86400`)
+export function setCacheHeaders(res: any, sMaxAge = 86400, maxAge = 300) {
+  res.setHeader(
+    'Cache-Control',
+    `public, max-age=${maxAge}, s-maxage=${sMaxAge}, stale-while-revalidate=604800`
+  )
 }

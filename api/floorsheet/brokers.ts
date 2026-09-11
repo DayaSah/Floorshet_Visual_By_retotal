@@ -7,10 +7,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const skipCache = req.query._skip_cache === '1'
     const pool = getPool()
 
-    // 1. Fetch ranking (cached for 5 minutes)
+    // 1. Fetch ranking (cached for 24 hours)
     const ranking = await getCachedOrFetch(
       'broker_ranking',
-      300,
+      86400,
       async () => {
         const rankingQuery = `
           WITH buys AS (
@@ -43,7 +43,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const brokerId = Number(broker)
       daily = await getCachedOrFetch(
         `broker_daily_${broker}`,
-        300,
+        14400,
         async () => {
           const dailyQuery = `
             SELECT trade_time::date as day,
@@ -63,7 +63,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       )
     }
 
-    setCacheHeaders(res, 300)
+    setCacheHeaders(res, 86400, 300)
     return res.status(200).json({ ranking, daily })
   } catch (error: any) {
     console.error('Error in broker analysis:', error)

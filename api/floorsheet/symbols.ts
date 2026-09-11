@@ -7,10 +7,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const skipCache = req.query._skip_cache === '1'
     const pool = getPool()
 
-    // 1. Fetch ranking (cached for 5 minutes)
+    // 1. Fetch ranking (cached for 24 hours)
     const ranking = await getCachedOrFetch(
       'symbol_ranking',
-      300,
+      86400,
       async () => {
         const rankingQuery = `
           WITH ordered AS (
@@ -45,7 +45,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (symbol) {
       trades = await getCachedOrFetch(
         `symbol_trades_${symbol}`,
-        300,
+        14400,
         async () => {
           const tradesQuery = `
             SELECT trade_time, rate, quantity, amount, buyer_broker, seller_broker
@@ -60,7 +60,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       )
     }
 
-    setCacheHeaders(res, 300)
+    setCacheHeaders(res, 86400, 300)
     return res.status(200).json({ ranking, trades })
   } catch (error: any) {
     console.error('Error in symbol analysis:', error)

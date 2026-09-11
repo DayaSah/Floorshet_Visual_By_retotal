@@ -9,7 +9,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const cacheKey = `floorsheet_raw_${limit}`
     const data = await getCachedOrFetch(
       cacheKey,
-      60, // 1 minute cache
+      1800, // 30 minutes cache
       async () => {
         const pool = getPool()
         const query = `
@@ -24,7 +24,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       skipCache
     )
 
-    setCacheHeaders(res, 60)
+    setCacheHeaders(res, 1800, 120)
     return res.status(200).json(data)
   } catch (error: any) {
     console.error('Error fetching raw floorsheet:', error)

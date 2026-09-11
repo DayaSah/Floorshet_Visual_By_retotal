@@ -8,7 +8,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const data = await getCachedOrFetch(
       cacheKey,
-      600, // 10 minutes cache
+      86400, // 24 hours cache
       async () => {
         const pool = getPool()
         const [sizeResult, blockDealsResult] = await Promise.all([
@@ -43,7 +43,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       skipCache
     )
 
-    setCacheHeaders(res, 600)
+    setCacheHeaders(res, 86400, 300)
     return res.status(200).json(data)
   } catch (error: any) {
     console.error('Error in trade size analysis:', error)
