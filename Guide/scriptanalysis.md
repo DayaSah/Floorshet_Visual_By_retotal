@@ -13,9 +13,11 @@ This guide is designed for traders, retail investors, and market enthusiasts who
    - [A. Script (Symbol) Selector](#a-script-symbol-selector)
    - [B. Date Range Window](#b-date-range-window)
    - [C. Script Summary KPIs](#c-script-summary-kpis)
-   - [D. The Daywise Line Diagram (Holding Trajectory)](#d-the-daywise-line-diagram-holding-trajectory)
-   - [E. Top 10 Broker Breakdown Table](#e-top-10-broker-breakdown-table)
-   - [F. CSV Data Export](#f-csv-data-export)
+   - [D. Smart Money Sentiment & Accumulation Index](#d-smart-money-sentiment--accumulation-index-aialgorithmic-score)
+   - [E. The Daywise Line Diagram (Holding Trajectory)](#e-the-daywise-line-diagram-holding-trajectory)
+   - [F. Top 10 Broker Breakdown Table](#f-top-10-broker-breakdown-table)
+   - [G. CSV Data Export](#g-csv-data-export)
+   - [H. Share Pro Card (Instant Institutional Flow Snapshot)](#h-share-pro-card-instant-institutional-flow-snapshot)
 4. [Real-World Example: Analyzing NABIL (Nabil Bank)](#4-real-world-example-analyzing-nabil-nabil-bank)
 5. [How to Spot Smart Money (Bullish vs. Bearish Signs)](#5-how-to-spot-smart-money-bullish-vs-bearish-signs)
 6. [Pro Tips & Shortcuts](#6-pro-tips--shortcuts)
@@ -152,7 +154,7 @@ Four smart preset buttons allow you to filter the chart in seconds:
 
 ---
 
-### E. Top 10 Broker Breakdown Table
+### F. Top 10 Broker Breakdown Table
 
 Below the chart sits a ranked table displaying the numerical breakdown for the top brokers.
 
@@ -172,14 +174,14 @@ Below the chart sits a ranked table displaying the numerical breakdown for the t
 
 ---
 
-### F. CSV Data Export
+### G. CSV Data Export
 - **Export CSV** (Header): Downloads the complete broker breakdown table to a spreadsheet with average buy/sell rates.
 - **Export Timeline** (Chart Header): Downloads the day-by-day net values and closing prices for every broker into a CSV file.
 - Perfect for building custom models in Microsoft Excel, Google Sheets, or Python.
 
 ---
 
-### G. Share Pro Card (Instant Institutional Flow Snapshot)
+### H. Share Pro Card (Instant Institutional Flow Snapshot)
 - Click **Share Pro Card** in the top header to generate a branded, high-resolution social graphic.
 - **Copy Image**: Copies the PNG directly to your system clipboard with 1 click, ready to paste into Telegram groups, Discord, Viber, or X.
 - **Download PNG**: Saves a Retina-quality graphic with the company ticker, latest price, Smart Money Index score, top buyers, top sellers, and net holding footprints.

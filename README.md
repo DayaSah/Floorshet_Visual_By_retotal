@@ -102,15 +102,18 @@ CockroachDB Serverless charges based on Request Units (RUs), where full table sc
 │       ├── brokers.ts                     # GET /api/floorsheet/brokers (rankings & broker daily history)
 │       ├── network.ts                     # GET /api/floorsheet/network (broker pairs & 10x10 matrix)
 │       ├── raw.ts                         # GET /api/floorsheet/raw (latest transactions with limit)
+│       ├── script-analysis.ts             # GET /api/floorsheet/script-analysis (symbol broker holdings, daywise trajectories & prices)
 │       ├── stats.ts                       # GET /api/floorsheet/stats (daily volume & top 10 symbols)
 │       ├── symbols.ts                     # GET /api/floorsheet/symbols (symbol ranking & price trades)
 │       ├── time-patterns.ts               # GET /api/floorsheet/time-patterns (5-min buckets & DOW)
 │       └── trade-size.ts                  # GET /api/floorsheet/trade-size (brackets & block deals)
+├── Guide/
+│   └── scriptanalysis.md                  # Comprehensive Beginner's Guide for the Script Analysis module
 ├── frontend/
 │   ├── index.html                         # Single Page Application HTML entry point
 │   ├── main.tsx                           # React 19 entry point with BrowserRouter & theme mount
 │   ├── App.tsx                            # Primary navigation, glassmorphism layout & routing
-│   ├── package.json                       # Frontend dependencies (Radix UI, Recharts, TanStack)
+│   ├── package.json                       # Frontend dependencies (Radix UI, Recharts, TanStack, html-to-image)
 │   ├── vite.config.ts                     # Vite build configuration with /api proxy
 │   ├── tailwind.config.js                 # Tailwind design tokens, colors, and shadows
 │   ├── postcss.config.js                  # PostCSS Tailwind and Autoprefixer plugins
@@ -119,7 +122,8 @@ CockroachDB Serverless charges based on Request Units (RUs), where full table sc
 │   ├── components/
 │   │   ├── GlassCard.tsx                  # Frosted-glass container card with backdrop blur
 │   │   ├── KpiCard.tsx                    # Key Performance Indicator card with status tone
-│   │   └── SignBadge.tsx                  # Positive/negative trend pill badge
+│   │   ├── SignBadge.tsx                  # Positive/negative trend pill badge
+│   │   └── CommandPalette.tsx             # Global search & navigation palette (Cmd+K / Ctrl+K)
 │   ├── hooks/
 │   │   └── backend/
 │   │       └── floorsheet.ts              # Type-safe client hooks for all API endpoints
@@ -131,11 +135,13 @@ CockroachDB Serverless charges based on Request Units (RUs), where full table sc
 │   │       ├── table.tsx                  # Data table primitive components
 │   │       └── utils.ts                   # Class name merger helper (clsx + twMerge)
 │   ├── pages/
+│   │   ├── ScriptAnalysis.tsx             # Route /script-analysis: Flagship smart money accumulation, trajectories & presets
 │   │   ├── Floorsheet.tsx                 # Route /: Searchable & sortable transactions table
 │   │   ├── FloorsheetVisualization.tsx    # Route /overview: Market overview KPI & volume charts
 │   │   ├── SymbolAnalysis.tsx             # Route /symbols: Gainers, losers & symbol drilldowns
 │   │   ├── BrokerAnalysis.tsx             # Route /brokers: Broker accumulation vs distribution
 │   │   ├── BrokerNetwork.tsx              # Route /broker-network: 10x10 inter-broker turnover matrix
+│   │   ├── MarketRadar.tsx                # Route /radar: Real-time whale transaction activity feed
 │   │   ├── TimePatterns.tsx               # Route /time-patterns: Intraday 5-min trade liquidity
 │   │   └── TradeSizeAnalysis.tsx          # Route /trade-size: Retail vs whale block deals
 │   ├── styles/
@@ -165,17 +171,20 @@ CockroachDB Serverless charges based on Request Units (RUs), where full table sc
 - **[`api/floorsheet/symbols.ts`](api/floorsheet/symbols.ts)**: Handler for `/api/floorsheet/symbols`. Computes min/max/first/last prices, turnover, and percentage price changes for symbols. If a `?symbol=XYZ` parameter is provided, returns its trade timeline.
 - **[`api/floorsheet/brokers.ts`](api/floorsheet/brokers.ts)**: Handler for `/api/floorsheet/brokers`. Uses CTEs to compute buy vs. sell turnover, net accumulation, and returns daily broker volumes when `?broker=N` is requested.
 - **[`api/floorsheet/network.ts`](api/floorsheet/network.ts)**: Handler for `/api/floorsheet/network`. Finds top 20 counterparty pairs and calculates a 10x10 matrix of trades between the top 10 brokers.
+- **[`api/floorsheet/script-analysis.ts`](api/floorsheet/script-analysis.ts)**: Handler for `/api/floorsheet/script-analysis`. Aggregates symbol-specific broker accumulation/distribution, cumulative daywise trajectories for all ~96 brokers, daily close rates, VWAP, and broker average buy/sell cost basis over custom or preset date windows.
 - **[`api/floorsheet/time-patterns.ts`](api/floorsheet/time-patterns.ts)**: Handler for `/api/floorsheet/time-patterns`. Aggregates trades into 5-minute intraday buckets and Day-of-Week buckets.
 - **[`api/floorsheet/trade-size.ts`](api/floorsheet/trade-size.ts)**: Handler for `/api/floorsheet/trade-size`. Categorizes transactions into 6 size buckets and retrieves the top 25 block deals (> Rs. 1M).
 
 ### 2. Frontend Core & Pages (`frontend/`)
 - **[`frontend/App.tsx`](frontend/App.tsx)**: Root application component. Renders the sticky navigation bar, floating glassmorphism ambient background, and registers client-side routes.
 - **[`frontend/main.tsx`](frontend/main.tsx)**: React 19 bootstrap entry point mounting the app into `#root` with `BrowserRouter`.
+- **[`frontend/pages/ScriptAnalysis.tsx`](frontend/pages/ScriptAnalysis.tsx)**: Flagship smart money tracker (`/script-analysis`). Features the Smart Money Index (0-100 score & AI verdict), daywise broker holding trajectories with dual-axis price overlay, 4 quick presets (including all 96 brokers), broker cost basis & real-time PnL status, and the "Share Pro Card" branded PNG exporter.
 - **[`frontend/pages/Floorsheet.tsx`](frontend/pages/Floorsheet.tsx)**: Interactive table page powered by `@tanstack/react-table`. Supports client-side sorting, pagination, symbol filtering, broker filtering, and date range filtering.
 - **[`frontend/pages/FloorsheetVisualization.tsx`](frontend/pages/FloorsheetVisualization.tsx)**: Market overview page featuring turnover KPI cards, daily volume area charts, and top symbol bar charts.
 - **[`frontend/pages/SymbolAnalysis.tsx`](frontend/pages/SymbolAnalysis.tsx)**: Symbol analysis page displaying top gainers, top losers, symbol rankings, and symbol-specific intraday price chart.
 - **[`frontend/pages/BrokerAnalysis.tsx`](frontend/pages/BrokerAnalysis.tsx)**: Broker page displaying net accumulation vs. distribution rankings and broker daily buy/sell bar charts.
 - **[`frontend/pages/BrokerNetwork.tsx`](frontend/pages/BrokerNetwork.tsx)**: Visualizes inter-broker trades with top trading pairs and a 10x10 counterparty intensity heatmap grid.
+- **[`frontend/pages/MarketRadar.tsx`](frontend/pages/MarketRadar.tsx)**: Real-time market radar feed (`/radar`) highlighting high-frequency whale transactions (> Rs. 1M) and sudden volume spikes across the trading day.
 - **[`frontend/pages/TimePatterns.tsx`](frontend/pages/TimePatterns.tsx)**: Visualizes trade distribution across the trading day (5-min intervals) and days of the week.
 - **[`frontend/pages/TradeSizeAnalysis.tsx`](frontend/pages/TradeSizeAnalysis.tsx)**: Displays trade size distribution (pie and bar charts) and a table of large block deals (> Rs. 1M).
 
@@ -183,10 +192,12 @@ CockroachDB Serverless charges based on Request Units (RUs), where full table sc
 - **[`frontend/components/GlassCard.tsx`](frontend/components/GlassCard.tsx)**: Translucent glassmorphism container using `backdrop-blur-xl`, subtle border highlighting, and hover elevation.
 - **[`frontend/components/KpiCard.tsx`](frontend/components/KpiCard.tsx)**: Metric card displaying value, icon, hint, and colored border status (`positive`, `negative`, `info`, `neutral`).
 - **[`frontend/components/SignBadge.tsx`](frontend/components/SignBadge.tsx)**: Pill badge displaying trend arrows and success/destructive colors based on numeric sign.
+- **[`frontend/components/CommandPalette.tsx`](frontend/components/CommandPalette.tsx)**: Global search & navigation palette accessible via `Cmd+K` / `Ctrl+K` or header search button.
 - **[`frontend/hooks/backend/floorsheet.ts`](frontend/hooks/backend/floorsheet.ts)**: Reusable `useQuery` hook factory creating `useGetFloorsheetRaw`, `useGetFloorsheetStats`, etc., returning `{ data, loading, error, trigger }`.
 - **[`frontend/utils/brokerNames.ts`](frontend/utils/brokerNames.ts)**: Complete mapping of all **101 official NEPSE registered stock brokers** (e.g., #58 Naasa Securities, #45 Imperial Securities), converting raw numbers to human-readable names.
 - **[`frontend/utils/format.ts`](frontend/utils/format.ts)**: Formatting utilities for numbers, currencies (`Rs.`), dates, and intraday minute intervals.
 - **[`frontend/utils/chartColors.ts`](frontend/utils/chartColors.ts)**: Centralized Recharts color constants matching theme CSS variables.
+- **[`Guide/scriptanalysis.md`](Guide/scriptanalysis.md)**: Exhaustive beginner's and trader's guide for the Script Analysis module, complete with real-world case studies, smart money interpretation matrix, and FAQ.
 
 ---
 
