@@ -71,6 +71,8 @@ interface BrokerHoldingRow {
   buyQty: number
   sellQty: number
   netQty: number
+  avgBuyRate?: number
+  avgSellRate?: number
   totalTurnover: number
   turnoverPct: number
 }
@@ -329,6 +331,11 @@ export default function ScriptAnalysis() {
           <div className="text-right">
             <div className="font-medium tabular-nums text-success">{formatCurrency(row.original.buyAmount)}</div>
             <div className="text-[11px] text-muted-foreground">{formatNumber(row.original.buyQty)} shares</div>
+            {row.original.avgBuyRate ? (
+              <div className="text-[10px] text-emerald-400/90 font-mono mt-0.5">
+                Avg: Rs. {row.original.avgBuyRate.toFixed(1)}
+              </div>
+            ) : null}
           </div>
         ),
       },
@@ -339,6 +346,11 @@ export default function ScriptAnalysis() {
           <div className="text-right">
             <div className="font-medium tabular-nums text-destructive">{formatCurrency(row.original.sellAmount)}</div>
             <div className="text-[11px] text-muted-foreground">{formatNumber(row.original.sellQty)} shares</div>
+            {row.original.avgSellRate ? (
+              <div className="text-[10px] text-rose-400/90 font-mono mt-0.5">
+                Avg: Rs. {row.original.avgSellRate.toFixed(1)}
+              </div>
+            ) : null}
           </div>
         ),
       },
@@ -371,6 +383,69 @@ export default function ScriptAnalysis() {
                 {isPositive ? '+' : ''}
                 {formatNumber(row.original.netQty)} shares
               </div>
+            </div>
+          )
+        },
+      },
+      {
+        id: 'estCostStatus',
+        header: 'Est. Cost & Status',
+        cell: ({ row }) => {
+          const latestPrice = Number(data?.kpis?.latestPrice) || 0
+          const netQty = row.original.netQty
+          const avgBuy = row.original.avgBuyRate || 0
+          const avgSell = row.original.avgSellRate || 0
+
+          if (netQty > 0 && avgBuy > 0) {
+            const pnlDiff = latestPrice > 0 ? latestPrice - avgBuy : 0
+            const pnlPct = latestPrice > 0 ? (pnlDiff / avgBuy) * 100 : 0
+            const isProfit = pnlDiff >= 0
+
+            return (
+              <div className="text-right min-w-[130px]">
+                <div className="text-xs font-mono font-medium">
+                  Holding @ <span className="text-foreground">Rs. {avgBuy.toFixed(1)}</span>
+                </div>
+                {latestPrice > 0 ? (
+                  <div className="flex items-center justify-end gap-1 mt-0.5">
+                    <span
+                      className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${
+                        isProfit
+                          ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                          : 'bg-rose-500/15 text-rose-400 border-rose-500/30'
+                      }`}
+                    >
+                      {isProfit ? '+' : ''}
+                      {pnlPct.toFixed(1)}% {isProfit ? 'Profit' : 'Underwater'}
+                    </span>
+                  </div>
+                ) : null}
+              </div>
+            )
+          }
+
+          if (netQty < 0 && avgSell > 0) {
+            return (
+              <div className="text-right min-w-[130px]">
+                <div className="text-xs font-mono font-medium text-muted-foreground">
+                  Liquidated @ <span className="text-foreground">Rs. {avgSell.toFixed(1)}</span>
+                </div>
+                {latestPrice > 0 ? (
+                  <div className="text-[10px] text-muted-foreground mt-0.5">
+                    {latestPrice < avgSell ? (
+                      <span className="text-emerald-400/90">Good Exit (LTP lower)</span>
+                    ) : (
+                      <span className="text-amber-400/90">Sold below LTP</span>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            )
+          }
+
+          return (
+            <div className="text-right text-xs text-muted-foreground font-mono">
+              Churned (0 net)
             </div>
           )
         },
@@ -414,8 +489,10 @@ export default function ScriptAnalysis() {
       Label: getBrokerLabel(b.broker),
       BuyAmount: b.buyAmount,
       BuyQuantity: b.buyQty,
+      AvgBuyRate: b.avgBuyRate ?? '',
       SellAmount: b.sellAmount,
       SellQuantity: b.sellQty,
+      AvgSellRate: b.avgSellRate ?? '',
       NetAmount: b.netAmount,
       NetQuantity: b.netQty,
       Turnover: b.totalTurnover,
@@ -630,7 +707,11 @@ export default function ScriptAnalysis() {
             <KpiCard
               label="Total Script Turnover"
               value={formatCompactNumber(data?.kpis?.totalAmount || 0)}
-              subtext={`${data?.dateRange?.startDate} to ${data?.dateRange?.endDate}`}
+              subtext={
+                data?.kpis?.latestPrice
+                  ? `LTP: Rs. ${Number(data.kpis.latestPrice).toFixed(1)} • ${data?.dateRange?.startDate} to ${data?.dateRange?.endDate}`
+                  : `${data?.dateRange?.startDate} to ${data?.dateRange?.endDate}`
+              }
               icon={<Wallet className="w-5 h-5 text-primary" />}
             />
             <KpiCard
@@ -644,7 +725,11 @@ export default function ScriptAnalysis() {
               value={topAccumulator ? `Broker #${topAccumulator.broker}` : 'None'}
               subtext={
                 topAccumulator
-                  ? `+${formatCompactNumber(topAccumulator.netAmount)} (+${formatCompactNumber(topAccumulator.netQty)} shares)`
+                  ? `+${formatCompactNumber(topAccumulator.netAmount)} @ Rs.${topAccumulator.avgBuyRate?.toFixed(1) || '-'}${
+                      data?.kpis?.latestPrice && topAccumulator.avgBuyRate
+                        ? ` (${data.kpis.latestPrice >= topAccumulator.avgBuyRate ? '+' : ''}${(((data.kpis.latestPrice - topAccumulator.avgBuyRate) / topAccumulator.avgBuyRate) * 100).toFixed(1)}% ${data.kpis.latestPrice >= topAccumulator.avgBuyRate ? '🟢' : '🔴'})`
+                        : ''
+                    }`
                   : 'No net accumulation'
               }
               icon={<TrendingUp className="w-5 h-5 text-success" />}
@@ -654,7 +739,7 @@ export default function ScriptAnalysis() {
               value={topDistributor ? `Broker #${topDistributor.broker}` : 'None'}
               subtext={
                 topDistributor
-                  ? `${formatCompactNumber(topDistributor.netAmount)} (${formatCompactNumber(topDistributor.netQty)} shares)`
+                  ? `${formatCompactNumber(topDistributor.netAmount)} (${formatCompactNumber(topDistributor.netQty)} sh) @ Rs.${topDistributor.avgSellRate?.toFixed(1) || '-'}`
                   : 'No net distribution'
               }
               icon={<TrendingDown className="w-5 h-5 text-destructive" />}

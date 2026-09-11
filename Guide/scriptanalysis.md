@@ -150,10 +150,11 @@ Below the chart sits a ranked table displaying the numerical breakdown for the t
 #### Table Columns:
 1. **Rank (`#`)**: 1 to 10.
 2. **Broker**: Star button (⭐) to add to your Watchlist, plus the registered company name (e.g., `Naasa Securities (#58)`). Clicking the broker name opens their full brokerage profile.
-3. **Buy Amount & Shares**: Total value and unit count bought by that broker.
-4. **Sell Amount & Shares**: Total value and unit count sold by that broker.
+3. **Buy Amount, Shares & Avg Rate**: Total value and unit count bought by that broker, with their **Average Buy Rate (VWAP)**.
+4. **Sell Amount, Shares & Avg Rate**: Total value and unit count sold by that broker, with their **Average Sell Rate (VWAP)**.
 5. **Net Holding**: The net balance highlighted in green badge (`+Rs.`) or red badge (`-Rs.`), alongside net share count.
-6. **Turnover Share**: Visual progress bar showing what percentage of the entire stock's turnover went through this single brokerage.
+6. **Est. Cost & Position Status**: The broker's calculated cost basis compared against the Latest Traded Price (LTP). Shows whether their net position is **In Profit (+X% 🟢)** or **Underwater (-X% 🔴)**, providing powerful insights into institutional support zones!
+7. **Turnover Share**: Visual progress bar showing what percentage of the entire stock's turnover went through this single brokerage.
 
 ---
 
