@@ -3,6 +3,7 @@ import { type ReactNode, lazy, Suspense } from 'react'
 import { NavLink, Routes, Route } from 'react-router-dom'
 import { Activity, Clock, LayoutGrid, Loader2, Network, ScatterChart, Table2, Users } from 'lucide-react'
 import { cn } from './lib/shadcn/utils'
+import { ThemeToggle } from './components/ThemeToggle'
 import './styles/effects.css'
 
 const Floorsheet = lazy(() => import('./pages/Floorsheet'))
@@ -53,14 +54,19 @@ export default function App() {
       </div>
 
       <nav className="sticky top-0 z-30 border-b border-border/60 bg-background/70 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto flex items-center gap-2 px-6 py-3 overflow-x-auto">
-          <NavTab to="/" icon={<Table2 className="w-4 h-4" />} label="Table" />
-          <NavTab to="/overview" icon={<LayoutGrid className="w-4 h-4" />} label="Overview" />
-          <NavTab to="/symbols" icon={<Activity className="w-4 h-4" />} label="Symbols" />
-          <NavTab to="/brokers" icon={<Users className="w-4 h-4" />} label="Brokers" />
-          <NavTab to="/broker-network" icon={<Network className="w-4 h-4" />} label="Broker Network" />
-          <NavTab to="/time-patterns" icon={<Clock className="w-4 h-4" />} label="Time Patterns" />
-          <NavTab to="/trade-size" icon={<ScatterChart className="w-4 h-4" />} label="Trade Size" />
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 px-6 py-2.5">
+          <div className="flex items-center gap-2 overflow-x-auto py-0.5 scrollbar-none">
+            <NavTab to="/" icon={<Table2 className="w-4 h-4" />} label="Table" />
+            <NavTab to="/overview" icon={<LayoutGrid className="w-4 h-4" />} label="Overview" />
+            <NavTab to="/symbols" icon={<Activity className="w-4 h-4" />} label="Symbols" />
+            <NavTab to="/brokers" icon={<Users className="w-4 h-4" />} label="Brokers" />
+            <NavTab to="/broker-network" icon={<Network className="w-4 h-4" />} label="Broker Network" />
+            <NavTab to="/time-patterns" icon={<Clock className="w-4 h-4" />} label="Time Patterns" />
+            <NavTab to="/trade-size" icon={<ScatterChart className="w-4 h-4" />} label="Trade Size" />
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <ThemeToggle />
+          </div>
         </div>
       </nav>
       <div className="relative z-10">

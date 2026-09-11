@@ -33,11 +33,11 @@ This document outlines the 6-phase improvement roadmap to turn NEPSE Floorsheet 
 ---
 
 ## 📌 Phase 4: Dark / Light Mode Theme Toggle
-- [ ] Create `frontend/components/ThemeToggle.tsx` with smooth Sun/Moon icon animations.
-- [ ] Persist theme preference in `localStorage` with OS `prefers-color-scheme` fallback.
-- [ ] Mount theme switcher in the sticky header in `frontend/App.tsx`.
-- [ ] Ensure consistent high-contrast colors and glassmorphism styling in both modes.
-- [ ] Verify build and commit/push to `main`.
+- [x] Create `frontend/components/ThemeToggle.tsx` with smooth Sun/Moon icon animations.
+- [x] Persist theme preference in `localStorage` with OS `prefers-color-scheme` fallback.
+- [x] Mount theme switcher in the sticky header in `frontend/App.tsx`.
+- [x] Ensure consistent high-contrast colors and glassmorphism styling in both modes.
+- [x] Verify build and commit/push to `main`.
 
 ---
 
