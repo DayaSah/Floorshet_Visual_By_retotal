@@ -50,7 +50,7 @@ This document outlines the 6-phase improvement roadmap to turn NEPSE Floorsheet 
 ---
 
 ## 📌 Phase 6: Server-Side Pagination & High-Volume Data Navigation
-- [ ] Update `api/floorsheet/raw.ts` to support `page` query parameter with offset-based slicing.
-- [ ] Update frontend hook and Floorsheet table to support multi-page historical navigation across all 2.6M records.
-- [ ] Cache pagination requests at Edge CDN with composite keys (`floorsheet_raw_${limit}_p${page}`).
-- [ ] Verify build and commit/push to `main`.
+- [x] Update `api/floorsheet/raw.ts` to support `page` query parameter with offset-based slicing.
+- [x] Update frontend hook and Floorsheet table to support multi-page historical navigation across all 2.6M records.
+- [x] Cache pagination requests at Edge CDN with composite keys (`floorsheet_raw_${limit}_p${page}`).
+- [x] Verify build and commit/push to `main`.

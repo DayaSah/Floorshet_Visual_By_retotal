@@ -37,10 +37,18 @@ export default function Floorsheet() {
   const [brokerFilter, setBrokerFilter] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [serverPage, setServerPage] = useState(1)
 
   useEffect(() => {
     trigger()
   }, [])
+
+  const handleServerPageChange = (newPage: number) => {
+    if (newPage < 1) return
+    setServerPage(newPage)
+    trigger({ page: newPage })
+    table.setPageIndex(0)
+  }
 
   const filteredData = useMemo(() => {
     const rows = data ?? []
@@ -336,32 +344,62 @@ export default function Floorsheet() {
           </Table>
         </div>
 
-        <div className="flex items-center justify-between mt-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4">
           <div className="text-sm text-muted-foreground">
-            {data ? `${filteredData.length.toLocaleString()} of ${data.length.toLocaleString()} records` : ''}
+            {data ? `${filteredData.length.toLocaleString()} of ${data.length.toLocaleString()} records in batch` : ''}
             {pageCount > 0 ? ` • Page ${pageIndex + 1} of ${pageCount}` : ''}
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-              className="gap-1"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-              className="gap-1"
-            >
-              Next
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Server Batch Selector */}
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground border border-border/60 rounded-md p-1 bg-muted/20">
+              <span className="px-1 font-medium">Batch</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleServerPageChange(serverPage - 1)}
+                disabled={serverPage <= 1 || loading}
+                className="h-7 w-7 p-0 cursor-pointer"
+                title="Previous 500 records from database"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </Button>
+              <span className="font-semibold text-foreground px-1">{serverPage}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleServerPageChange(serverPage + 1)}
+                disabled={!data || data.length < 500 || loading}
+                className="h-7 w-7 p-0 cursor-pointer"
+                title="Next 500 records from database"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+
+            {/* In-batch page navigation */}
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+                className="gap-1 h-8"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Prev
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+                className="gap-1 h-8"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
