@@ -55,18 +55,13 @@ const PRESET_RANGES = [
 
 const POPULAR_SYMBOLS = ['NABIL', 'SHIVM', 'CHCL', 'GBIME', 'HDL', 'NICA', 'CIT', 'NFS', 'SCB']
 
-const BROKER_COLORS = [
-  '#10b981', // emerald
-  '#06b6d4', // cyan
-  '#3b82f6', // blue
-  '#8b5cf6', // purple
-  '#ec4899', // pink
-  '#f59e0b', // amber
-  '#ef4444', // red
-  '#14b8a6', // teal
-  '#6366f1', // indigo
-  '#f97316', // orange
-]
+export function getBrokerColor(broker: string | number): string {
+  const id = Number(broker)
+  if (!id || isNaN(id)) return '#3b82f6'
+  // Use golden angle distribution (137.508 deg) to assign vibrant, distinct colors across all 96 brokers
+  const hue = (id * 137.508) % 360
+  return `hsl(${Math.round(hue)}, 78%, 52%)`
+}
 
 interface BrokerHoldingRow {
   broker: string
@@ -142,22 +137,114 @@ export default function ScriptAnalysis() {
     }
   }, [urlSymbol, urlRange])
 
-  // Top 10 Brokers by gross turnover (used for the line diagram)
-  const top10Brokers = useMemo(() => {
-    return (data?.topBrokers || []).slice(0, 10)
-  }, [data])
+  type TrajectoryPreset = 'top5_acc' | 'top5_dist' | 'top5_both' | 'all' | 'custom'
+  const [activePreset, setActivePreset] = useState<TrajectoryPreset>('top5_both')
+  const [brokerChipFilter, setBrokerChipFilter] = useState<string>('')
 
-  // Initialize visible brokers map when top10 brokers load
-  useEffect(() => {
-    if (top10Brokers.length > 0) {
-      const initial: Record<string, boolean> = {}
-      top10Brokers.forEach((b, idx) => {
-        // Default first 6 brokers visible to keep the line diagram crisp
-        initial[b.broker] = idx < 6
-      })
-      setVisibleBrokers(initial)
+  // Top 5 Net Accumulators (Buyers: netAmount > 0)
+  const top5Accumulators = useMemo(() => {
+    return [...(data?.topBrokers || [])]
+      .filter((b) => b.netAmount > 0)
+      .sort((a, b) => b.netAmount - a.netAmount)
+      .slice(0, 5)
+  }, [data?.topBrokers])
+
+  // Top 5 Net Distributors (Sellers: netAmount < 0, largest negative first)
+  const top5Distributors = useMemo(() => {
+    return [...(data?.topBrokers || [])]
+      .filter((b) => b.netAmount < 0)
+      .sort((a, b) => a.netAmount - b.netAmount)
+      .slice(0, 5)
+  }, [data?.topBrokers])
+
+  // Top 5 Accumulators + Top 5 Distributors (up to 10 unique brokers)
+  const top5Both = useMemo(() => {
+    const accBrokers = new Set(top5Accumulators.map((b) => b.broker))
+    const combined = [...top5Accumulators]
+    for (const d of top5Distributors) {
+      if (!accBrokers.has(d.broker)) {
+        combined.push(d)
+      }
     }
-  }, [top10Brokers])
+    return combined
+  }, [top5Accumulators, top5Distributors])
+
+  const applyPreset = (preset: TrajectoryPreset) => {
+    setActivePreset(preset)
+    const all = (data?.topBrokers || []) as BrokerHoldingRow[]
+    const next: Record<string, boolean> = {}
+
+    if (preset === 'top5_acc') {
+      top5Accumulators.forEach((b) => {
+        next[b.broker] = true
+      })
+    } else if (preset === 'top5_dist') {
+      top5Distributors.forEach((b) => {
+        next[b.broker] = true
+      })
+    } else if (preset === 'top5_both') {
+      top5Both.forEach((b) => {
+        next[b.broker] = true
+      })
+    } else if (preset === 'all') {
+      all.forEach((b) => {
+        next[b.broker] = true
+      })
+    }
+    setVisibleBrokers(next)
+  }
+
+  // Initialize visible brokers map when brokers load
+  useEffect(() => {
+    if (data?.topBrokers && data.topBrokers.length > 0) {
+      const presetToApply = activePreset === 'custom' ? 'top5_both' : activePreset
+      setActivePreset(presetToApply)
+      const all = data.topBrokers
+      const next: Record<string, boolean> = {}
+
+      if (presetToApply === 'top5_acc') {
+        top5Accumulators.forEach((b) => {
+          next[b.broker] = true
+        })
+      } else if (presetToApply === 'top5_dist') {
+        top5Distributors.forEach((b) => {
+          next[b.broker] = true
+        })
+      } else if (presetToApply === 'all') {
+        all.forEach((b) => {
+          next[b.broker] = true
+        })
+      } else {
+        top5Both.forEach((b) => {
+          next[b.broker] = true
+        })
+      }
+      setVisibleBrokers(next)
+    }
+  }, [data?.topBrokers, top5Accumulators, top5Distributors, top5Both])
+
+  const toggleBroker = (brokerId: string) => {
+    setActivePreset('custom')
+    setVisibleBrokers((prev) => ({
+      ...prev,
+      [brokerId]: !prev[brokerId],
+    }))
+  }
+
+  const visibleBrokersCount = useMemo(() => {
+    return Object.values(visibleBrokers).filter(Boolean).length
+  }, [visibleBrokers])
+
+  const filteredBrokerChips = useMemo(() => {
+    const list = (data?.topBrokers || []) as BrokerHoldingRow[]
+    if (!brokerChipFilter.trim()) return list
+    const q = brokerChipFilter.trim().toLowerCase()
+    return list.filter((b) => {
+      const brokerNum = String(b.broker).toLowerCase()
+      const label = getBrokerLabel(b.broker).toLowerCase()
+      return brokerNum.includes(q) || label.includes(q)
+    })
+  }, [data?.topBrokers, brokerChipFilter])
 
   // Filtered symbols for autocomplete dropdown
   const symbolSuggestions = useMemo(() => {
@@ -627,96 +714,233 @@ export default function ScriptAnalysis() {
               </div>
             </div>
 
-            {/* Broker Line Visibility Filters */}
-            <div className="flex items-center gap-2 flex-wrap mb-4 pb-3 border-b border-border/40">
-              <span className="text-xs text-muted-foreground mr-1">Toggle Brokers:</span>
-              {top10Brokers.map((b, idx) => {
-                const isVisible = visibleBrokers[b.broker] ?? false
-                const color = BROKER_COLORS[idx % BROKER_COLORS.length]
-                return (
+            {/* Trajectory Preset Buttons Bar */}
+            <div className="flex items-center justify-between gap-3 flex-wrap p-2.5 bg-muted/30 rounded-xl border border-border/50 mb-3">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-semibold text-muted-foreground mr-1 flex items-center gap-1">
+                  <Layers className="w-3.5 h-3.5 text-primary" />
+                  Trajectory Presets:
+                </span>
+
+                {/* 1. Top 5 Accumulators */}
+                <button
+                  type="button"
+                  onClick={() => applyPreset('top5_acc')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
+                    activePreset === 'top5_acc'
+                      ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50 shadow-xs font-semibold ring-1 ring-emerald-500/30'
+                      : 'bg-background/60 text-muted-foreground border-border/60 hover:text-foreground hover:border-border'
+                  }`}
+                >
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Top 5 Accumulators</span>
+                </button>
+
+                {/* 2. Top 5 Distributors */}
+                <button
+                  type="button"
+                  onClick={() => applyPreset('top5_dist')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
+                    activePreset === 'top5_dist'
+                      ? 'bg-rose-500/20 text-rose-400 border-rose-500/50 shadow-xs font-semibold ring-1 ring-rose-500/30'
+                      : 'bg-background/60 text-muted-foreground border-border/60 hover:text-foreground hover:border-border'
+                  }`}
+                >
+                  <span className="w-2 h-2 rounded-full bg-rose-500" />
+                  <TrendingDown className="w-3.5 h-3.5 text-rose-400" />
+                  <span>Top 5 Distributors</span>
+                </button>
+
+                {/* 3. Top 5 Acc + 5 Dist */}
+                <button
+                  type="button"
+                  onClick={() => applyPreset('top5_both')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
+                    activePreset === 'top5_both'
+                      ? 'bg-primary/20 text-primary border-primary/50 shadow-xs font-semibold ring-1 ring-primary/30'
+                      : 'bg-background/60 text-muted-foreground border-border/60 hover:text-foreground hover:border-border'
+                  }`}
+                >
+                  <span className="w-2 h-2 rounded-full bg-primary" />
+                  <ArrowUpDown className="w-3.5 h-3.5 text-primary" />
+                  <span>Top 5 Acc + 5 Dist</span>
+                </button>
+
+                {/* 4. All Listed Brokers */}
+                <button
+                  type="button"
+                  onClick={() => applyPreset('all')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
+                    activePreset === 'all'
+                      ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50 shadow-xs font-semibold ring-1 ring-cyan-500/30'
+                      : 'bg-background/60 text-muted-foreground border-border/60 hover:text-foreground hover:border-border'
+                  }`}
+                >
+                  <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                  <Users className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>All Listed Brokers ({data?.topBrokers?.length || 0})</span>
+                </button>
+              </div>
+
+              {/* Status indicator & Clear All */}
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-muted-foreground">
+                  Active: <span className="font-semibold text-foreground">{visibleBrokersCount}</span> / {data?.topBrokers?.length || 0}
+                </span>
+                {visibleBrokersCount > 0 && (
                   <button
-                    key={b.broker}
-                    onClick={() =>
-                      setVisibleBrokers((prev) => ({
-                        ...prev,
-                        [b.broker]: !prev[b.broker],
-                      }))
-                    }
-                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-all cursor-pointer ${
-                      isVisible
-                        ? 'bg-background shadow-xs text-foreground'
-                        : 'opacity-40 bg-muted/20 text-muted-foreground border-transparent'
-                    }`}
-                    style={{
-                      borderColor: isVisible ? color : undefined,
+                    type="button"
+                    onClick={() => {
+                      setActivePreset('custom')
+                      setVisibleBrokers({})
                     }}
+                    className="text-muted-foreground hover:text-destructive underline text-[11px] cursor-pointer ml-1"
                   >
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
-                    <span>Broker #{b.broker}</span>
+                    Clear All
                   </button>
-                )
-              })}
+                )}
+              </div>
+            </div>
+
+            {/* Individual Broker Line Visibility Filters */}
+            <div className="space-y-2 mb-4 pb-3 border-b border-border/40">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground font-medium">Individual Broker Toggles:</span>
+                  {activePreset === 'custom' && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                      Custom Selection
+                    </span>
+                  )}
+                </div>
+
+                {(data?.topBrokers?.length || 0) > 10 && (
+                  <div className="relative w-44">
+                    <Search className="w-3 h-3 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <input
+                      type="text"
+                      value={brokerChipFilter}
+                      onChange={(e) => setBrokerChipFilter(e.target.value)}
+                      placeholder="Filter broker #..."
+                      className="w-full pl-6 pr-2 py-0.5 text-[11px] rounded bg-background/60 border border-border/60 text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:border-primary"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center gap-1.5 flex-wrap max-h-36 overflow-y-auto pr-1 py-1">
+                {filteredBrokerChips.map((b) => {
+                  const isVisible = visibleBrokers[b.broker] ?? false
+                  const color = getBrokerColor(b.broker)
+                  const isBuyer = b.netAmount > 0
+                  const isSeller = b.netAmount < 0
+
+                  return (
+                    <button
+                      key={b.broker}
+                      type="button"
+                      onClick={() => toggleBroker(b.broker)}
+                      className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium border transition-all cursor-pointer ${
+                        isVisible
+                          ? 'bg-background shadow-xs text-foreground'
+                          : 'opacity-40 bg-muted/20 text-muted-foreground border-transparent hover:opacity-75'
+                      }`}
+                      style={{
+                        borderColor: isVisible ? color : undefined,
+                      }}
+                      title={`${getBrokerLabel(b.broker)}: Net ${isBuyer ? '+' : ''}${formatCurrency(b.netAmount)}`}
+                    >
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                      <span>#{b.broker}</span>
+                      <span
+                        className={`text-[9px] font-mono ${
+                          isBuyer ? 'text-success' : isSeller ? 'text-destructive' : 'text-muted-foreground'
+                        }`}
+                      >
+                        {isBuyer ? `+${formatCompactNumber(b.netAmount)}` : formatCompactNumber(b.netAmount)}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
             </div>
 
             {/* Multi-Line Chart */}
-            <div className="h-[360px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={data?.dailySeriesCumulative || []} margin={{ top: 10, right: 20, left: 10, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis
-                    dataKey="day"
-                    tickFormatter={formatDay}
-                    tick={{ fontSize: 11 }}
-                    stroke="hsl(var(--muted-foreground))"
-                  />
-                  <YAxis
-                    tickFormatter={formatCompactNumber}
-                    tick={{ fontSize: 11 }}
-                    stroke="hsl(var(--muted-foreground))"
-                  />
-                  <Tooltip
-                    labelFormatter={(val) => `Date: ${formatDay(String(val))}`}
-                    formatter={(val, name) => {
-                      const brokerId = String(name).replace(/^(cum_net_|cum_qty_|daily_net_)/, '')
-                      const label = getBrokerLabel(brokerId)
-                      const isQty = chartMetric === 'cumulative_qty'
-                      const formatted = isQty
-                        ? `${formatNumber(Number(val))} shares`
-                        : formatCurrency(Number(val))
-                      return [formatted, label]
-                    }}
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--card))',
-                      borderColor: 'hsl(var(--border))',
-                      color: 'hsl(var(--card-foreground))',
-                    }}
-                  />
-                  {top10Brokers.map((b, idx) => {
-                    const isVisible = visibleBrokers[b.broker] ?? false
-                    if (!isVisible) return null
-                    const color = BROKER_COLORS[idx % BROKER_COLORS.length]
-                    const dataKey =
-                      chartMetric === 'cumulative_amount'
-                        ? `cum_net_${b.broker}`
-                        : chartMetric === 'cumulative_qty'
-                        ? `cum_qty_${b.broker}`
-                        : `daily_net_${b.broker}`
+            <div className="h-[380px] w-full">
+              {visibleBrokersCount === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-muted-foreground border border-dashed border-border/60 rounded-xl p-8 text-center">
+                  <Layers className="w-8 h-8 mb-2 opacity-40" />
+                  <p className="text-sm font-medium text-foreground">No brokers selected</p>
+                  <p className="text-xs text-muted-foreground mt-1 max-w-sm">
+                    Click a preset above (Top 5 Accumulators, Distributors, Both, or All Listed Brokers) or toggle individual brokers to view their trajectory.
+                  </p>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={data?.dailySeriesCumulative || []} margin={{ top: 10, right: 20, left: 10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis
+                      dataKey="day"
+                      tickFormatter={formatDay}
+                      tick={{ fontSize: 11 }}
+                      stroke="hsl(var(--muted-foreground))"
+                    />
+                    <YAxis
+                      tickFormatter={formatCompactNumber}
+                      tick={{ fontSize: 11 }}
+                      stroke="hsl(var(--muted-foreground))"
+                    />
+                    <Tooltip
+                      labelFormatter={(val) => `Date: ${formatDay(String(val))}`}
+                      formatter={(val, name) => {
+                        const brokerId = String(name).replace(/^(cum_net_|cum_qty_|daily_net_)/, '')
+                        const label = getBrokerLabel(brokerId)
+                        const isQty = chartMetric === 'cumulative_qty'
+                        const formatted = isQty
+                          ? `${formatNumber(Number(val))} shares`
+                          : formatCurrency(Number(val))
+                        return [formatted, label]
+                      }}
+                      itemSorter={(item) => -(Math.abs(Number(item.value) || 0))}
+                      wrapperStyle={{ maxHeight: 320, overflowY: 'auto', zIndex: 100 }}
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--card))',
+                        borderColor: 'hsl(var(--border))',
+                        color: 'hsl(var(--card-foreground))',
+                        fontSize: '12px',
+                        borderRadius: '8px',
+                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)',
+                      }}
+                    />
+                    {(data?.topBrokers || []).map((b) => {
+                      const isVisible = visibleBrokers[b.broker] ?? false
+                      if (!isVisible) return null
+                      const color = getBrokerColor(b.broker)
+                      const dataKey =
+                        chartMetric === 'cumulative_amount'
+                          ? `cum_net_${b.broker}`
+                          : chartMetric === 'cumulative_qty'
+                          ? `cum_qty_${b.broker}`
+                          : `daily_net_${b.broker}`
 
-                    return (
-                      <Line
-                        key={b.broker}
-                        type="monotone"
-                        dataKey={dataKey}
-                        name={dataKey}
-                        stroke={color}
-                        strokeWidth={2.5}
-                        dot={false}
-                        activeDot={{ r: 5 }}
-                      />
-                    )
-                  })}
-                </LineChart>
-              </ResponsiveContainer>
+                      return (
+                        <Line
+                          key={b.broker}
+                          type="monotone"
+                          dataKey={dataKey}
+                          name={dataKey}
+                          stroke={color}
+                          strokeWidth={visibleBrokersCount > 15 ? 1.5 : 2.5}
+                          dot={false}
+                          activeDot={{ r: 4 }}
+                          isAnimationActive={visibleBrokersCount <= 15}
+                        />
+                      )
+                    })}
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </GlassCard>
 

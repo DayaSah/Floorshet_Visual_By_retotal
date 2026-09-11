@@ -97,7 +97,7 @@ Once you choose a stock, four top-level summary cards appear:
 
 ### D. The Daywise Line Diagram (Holding Trajectory)
 
-This is the centerpiece of the Script Analysis tab. It plots the **day-by-day evolution of the top 10 brokers**.
+This is the centerpiece of the Script Analysis tab. It plots the **day-by-day cumulative holding trajectory across brokerages**.
 
 ```
   Net Holding (NPR)
@@ -119,14 +119,21 @@ This is the centerpiece of the Script Analysis tab. It plots the **day-by-day ev
 - **Cumulative Shares**: Same as above, but measured in **number of shares** instead of rupees.
 - **Daily Net NPR**: Shows the exact net position taken on each single day (spikes indicate aggressive single-day buying or selling).
 
-#### 2. Interactive Broker Visibility Toggles:
-- Above the chart, you will see color-coded pills for each of the top 10 brokers (e.g. `[● Broker #58] [● Broker #34]`).
-- Click any broker's pill to **turn their line on or off**.
-- *Example*: Want to compare only the biggest buyer vs. the biggest seller without visual clutter? Turn off the other 8 brokers and focus solely on those two lines!
+#### 2. One-Click Trajectory Presets:
+Four smart preset buttons allow you to filter the chart in seconds:
+- **🟢 Top 5 Accumulators**: Displays only the top 5 net buyers (`netAmount > 0`), isolating institutional buying pressure.
+- **🔴 Top 5 Distributors**: Displays only the top 5 net sellers (`netAmount < 0`), showing who is liquidating shares.
+- **⚖️ Top 5 Acc + 5 Dist** *(Default)*: Plots both top 5 accumulators and top 5 distributors side-by-side to reveal who is absorbing whose supply.
+- **🌐 All Listed Brokers (All 96 Brokers)**: Renders the trajectory lines for **all brokers** who traded that stock in that period, giving you the complete, macro market footprint.
 
-#### 3. Interactive Tooltip:
+#### 3. Searchable Broker Chip Tray & Individual Toggles:
+- Below the preset bar, an interactive tray displays every active broker with their signature color dot, broker ID, and net position badge (e.g. `+Rs. 10.2M` or `-Rs. 8.1M`).
+- Use the **Filter broker #** search box to quickly find any specific broker (e.g. `58` or `Naasa`) and toggle their line on or off.
+- Click **Clear All** anytime to reset the chart and construct your own custom broker comparison.
+
+#### 4. Interactive Tooltip:
 - Hover your mouse (or tap on mobile) anywhere on the chart.
-- A popup reveals the exact date, registered broker names, and exact net rupees or shares accumulated up to that day.
+- A popup reveals the exact date, registered broker names, and exact net rupees or shares accumulated up to that day, sorted automatically with the largest positions at the top.
 
 ---
 

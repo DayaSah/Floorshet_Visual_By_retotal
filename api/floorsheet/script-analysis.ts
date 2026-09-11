@@ -26,7 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ allSymbols, symbol: '', topBrokers: [], dailySeries: [] })
     }
 
-    const cacheKey = `script_analysis_${symbol}_${range}_${customStart}_${customEnd}`
+    const cacheKey = `script_analysis_v2_${symbol}_${range}_${customStart}_${customEnd}`
 
     const resultData = await getCachedOrFetch(
       cacheKey,
@@ -109,27 +109,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           turnoverPct: (Number(r.total_amount) / totalTurnover) * 100,
         }))
 
-        // Take the top 10 brokers by gross turnover for the line diagram
-        const top10BrokerIds = topBrokers.slice(0, 10).map((b: any) => Number(b.broker))
+        const allTradedBrokerIds = topBrokers.map((b: any) => String(b.broker))
 
-        // 3. Daywise Breakdown for the top 10 brokers
+        // 3. Daywise Breakdown for all active brokers
         let dailySeries: any[] = []
         let dailySeriesCumulative: any[] = []
 
-        if (top10BrokerIds.length > 0) {
-          const daywiseParams = [...params, top10BrokerIds]
-          const paramIndex = params.length + 1
+        if (allTradedBrokerIds.length > 0) {
           const daywiseQuery = `
             WITH b_buys AS (
               SELECT trade_time::date as day, buyer_broker as broker, SUM(amount) as buy_amount, SUM(quantity) as buy_qty
               FROM floorsheet_raw
-              WHERE symbol = $1 ${dateCondition} AND buyer_broker = ANY($${paramIndex}::int[])
+              WHERE symbol = $1 ${dateCondition}
               GROUP BY day, buyer_broker
             ),
             b_sells AS (
               SELECT trade_time::date as day, seller_broker as broker, SUM(amount) as sell_amount, SUM(quantity) as sell_qty
               FROM floorsheet_raw
-              WHERE symbol = $1 ${dateCondition} AND seller_broker = ANY($${paramIndex}::int[])
+              WHERE symbol = $1 ${dateCondition}
               GROUP BY day, seller_broker
             )
             SELECT COALESCE(b.day, s.day)::text as day,
@@ -141,20 +138,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             FROM b_buys b FULL OUTER JOIN b_sells s ON b.day = s.day AND b.broker = s.broker
             ORDER BY day ASC
           `
-          const dayResult = await pool.query(daywiseQuery, daywiseParams)
+          const dayResult = await pool.query(daywiseQuery, params)
 
           // Pivot rows by day
           const dayMap = new Map<string, any>()
-          const allDays: string[] = []
 
           for (const row of dayResult.rows) {
             const d = String(row.day).slice(0, 10)
             if (!dayMap.has(d)) {
               dayMap.set(d, { day: d })
-              allDays.push(d)
             }
             const entry = dayMap.get(d)
-            const b = row.broker
+            const b = String(row.broker)
             entry[`net_${b}`] = Number(row.net_amount)
             entry[`buy_${b}`] = Number(row.buy_amount)
             entry[`sell_${b}`] = Number(row.sell_amount)
@@ -169,8 +164,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
           dailySeriesCumulative = dailySeries.map((dayItem) => {
             const cumItem: any = { day: dayItem.day }
-            for (const b of top10BrokerIds) {
-              const bStr = String(b)
+            for (const bStr of allTradedBrokerIds) {
               const netToday = dayItem[`net_${bStr}`] || 0
               const qtyToday = dayItem[`qty_${bStr}`] || 0
               runningNet[bStr] = (runningNet[bStr] || 0) + netToday
