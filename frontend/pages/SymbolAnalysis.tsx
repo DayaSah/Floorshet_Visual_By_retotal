@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import {
   Area,
   AreaChart,
@@ -22,7 +22,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { ArrowDown, ArrowUp, ArrowUpDown, Download, RefreshCw, Star, TrendingDown, TrendingUp, Wallet } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, Building2, Download, RefreshCw, Star, TrendingDown, TrendingUp, Wallet } from 'lucide-react'
 import { useGetSymbolAnalysis } from '../hooks/backend/floorsheet'
 import { Button } from '../lib/shadcn/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../lib/shadcn/select'
@@ -33,7 +33,8 @@ import { SignBadge } from '../components/SignBadge'
 import { CHART_PRIMARY, signColor } from '../utils/chartColors'
 import { formatCompactNumber, formatCurrency, formatDay, formatNumber } from '../utils/format'
 import { exportToCsv } from '../utils/csvExport'
-import { getWatchlist, subscribeWatchlist, toggleSymbolWatchlist } from '../utils/watchlist'
+import { getBrokerLabel } from '../utils/brokerNames'
+import { getWatchlist, subscribeWatchlist, toggleBrokerWatchlist, toggleSymbolWatchlist } from '../utils/watchlist'
 
 interface SymbolRankingRow {
   symbol: string
@@ -64,6 +65,7 @@ export default function SymbolAnalysis() {
   const [selectedSymbol, setSelectedSymbol] = useState<string>(urlSymbol)
   const [sorting, setSorting] = useState<SortingState>([{ id: 'totalAmount', desc: true }])
   const [watchlist, setWatchlist] = useState(getWatchlist)
+  const [brokerTab, setBrokerTab] = useState<'smart_flow' | 'volume'>('smart_flow')
 
   useEffect(() => {
     return subscribeWatchlist(setWatchlist)
@@ -140,6 +142,67 @@ export default function SymbolAnalysis() {
     dailyForSymbol.length >= 2
       ? (dailyForSymbol[dailyForSymbol.length - 1]?.close ?? 0) - (dailyForSymbol[0]?.close ?? 0)
       : 0
+
+  const brokerActivity = useMemo(() => {
+    if (!selectedSymbol || !data?.trades || data.trades.length === 0) {
+      return {
+        accumulators: [],
+        distributors: [],
+        topBuyers: [],
+        topSellers: [],
+        totalTurnover: 0,
+      }
+    }
+
+    const map = new Map<string, { buyAmount: number; buyQty: number; sellAmount: number; sellQty: number }>()
+    let totalStockTurnover = 0
+
+    for (const t of data.trades) {
+      const amt = Number(t.amount) || 0
+      const qty = Number(t.quantity) || 0
+      totalStockTurnover += amt
+
+      const b = String(t.buyer_broker)
+      const s = String(t.seller_broker)
+
+      if (!map.has(b)) map.set(b, { buyAmount: 0, buyQty: 0, sellAmount: 0, sellQty: 0 })
+      const bEntry = map.get(b)!
+      bEntry.buyAmount += amt
+      bEntry.buyQty += qty
+
+      if (!map.has(s)) map.set(s, { buyAmount: 0, buyQty: 0, sellAmount: 0, sellQty: 0 })
+      const sEntry = map.get(s)!
+      sEntry.sellAmount += amt
+      sEntry.sellQty += qty
+    }
+
+    const list = Array.from(map.entries()).map(([broker, stats]) => ({
+      broker,
+      label: getBrokerLabel(broker),
+      buyAmount: stats.buyAmount,
+      buyQty: stats.buyQty,
+      sellAmount: stats.sellAmount,
+      sellQty: stats.sellQty,
+      netAmount: stats.buyAmount - stats.sellAmount,
+      netQty: stats.buyQty - stats.sellQty,
+      totalTurnover: stats.buyAmount + stats.sellAmount,
+    }))
+
+    const accumulators = list
+      .filter((b) => b.netAmount > 0)
+      .sort((a, b) => b.netAmount - a.netAmount)
+      .slice(0, 5)
+
+    const distributors = list
+      .filter((b) => b.netAmount < 0)
+      .sort((a, b) => a.netAmount - b.netAmount)
+      .slice(0, 5)
+
+    const topBuyers = [...list].sort((a, b) => b.buyAmount - a.buyAmount).slice(0, 5)
+    const topSellers = [...list].sort((a, b) => b.sellAmount - a.sellAmount).slice(0, 5)
+
+    return { accumulators, distributors, topBuyers, topSellers, totalTurnover: totalStockTurnover }
+  }, [data, selectedSymbol])
 
   const columns = useMemo<ColumnDef<RankingPoint>[]>(
     () => [
@@ -419,7 +482,8 @@ export default function SymbolAnalysis() {
           ) : loading ? (
             <div className="h-[280px] flex items-center justify-center text-muted-foreground text-sm">Loading...</div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div>
                 <h3 className="text-sm font-medium mb-2 text-muted-foreground flex items-center gap-2">
                   Closing Rate per Day
@@ -462,8 +526,252 @@ export default function SymbolAnalysis() {
                 </ResponsiveContainer>
               </div>
             </div>
-          )}
-        </GlassCard>
+
+            {/* Smart Money Broker Activity */}
+            <div className="mt-8 pt-6 border-t border-border/60">
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-5 h-5 text-primary" />
+                    <h3 className="text-base font-semibold">Smart Money & Broker Activity for {selectedSymbol}</h3>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Real-time institutional flow & positioning breakdown across brokerages
+                  </p>
+                </div>
+                <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-lg border border-border/40 text-xs">
+                  <button
+                    onClick={() => setBrokerTab('smart_flow')}
+                    className={`px-2.5 py-1 rounded-md font-medium transition-all cursor-pointer ${
+                      brokerTab === 'smart_flow'
+                        ? 'bg-background shadow-xs text-foreground'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    🧠 Net Smart Money
+                  </button>
+                  <button
+                    onClick={() => setBrokerTab('volume')}
+                    className={`px-2.5 py-1 rounded-md font-medium transition-all cursor-pointer ${
+                      brokerTab === 'volume'
+                        ? 'bg-background shadow-xs text-foreground'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    📊 Top Gross Volume
+                  </button>
+                </div>
+              </div>
+
+              {brokerTab === 'smart_flow' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Top Accumulators (Net Buyers) */}
+                  <div className="rounded-lg border border-border/60 bg-background/40 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-success"></span>
+                        <h4 className="text-sm font-semibold text-success">Top Accumulators (Net Buyers)</h4>
+                      </div>
+                      <span className="text-xs text-muted-foreground">Institutional Accumulation</span>
+                    </div>
+                    {brokerActivity.accumulators.length === 0 ? (
+                      <p className="text-xs text-muted-foreground py-6 text-center">No net buyer accumulation detected</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {brokerActivity.accumulators.map((item, idx) => {
+                          const maxAcc = brokerActivity.accumulators[0]?.netAmount || 1
+                          const pct = Math.min(100, Math.round((item.netAmount / maxAcc) * 100))
+                          const isStarred = watchlist.brokers.includes(item.broker)
+                          return (
+                            <div key={item.broker} className="space-y-1">
+                              <div className="flex items-center justify-between text-xs">
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <button
+                                    onClick={() => toggleBrokerWatchlist(item.broker)}
+                                    className="text-muted-foreground hover:text-warning transition-colors p-0.5 cursor-pointer"
+                                    title={isStarred ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                                  >
+                                    <Star className={`w-3 h-3 ${isStarred ? 'text-warning fill-warning' : ''}`} />
+                                  </button>
+                                  <span className="font-mono text-muted-foreground text-[10px]">#{idx + 1}</span>
+                                  <Link
+                                    to={`/brokers?broker=${item.broker}`}
+                                    className="font-medium hover:underline text-primary truncate max-w-[180px] sm:max-w-[240px]"
+                                    title={`View ${item.label}`}
+                                  >
+                                    {item.label}
+                                  </Link>
+                                </div>
+                                <div className="text-right whitespace-nowrap pl-2">
+                                  <span className="font-semibold text-success">+{formatCurrency(item.netAmount)}</span>
+                                  <span className="text-[10px] text-muted-foreground ml-1">
+                                    (+{formatCompactNumber(item.netQty)} shares)
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="h-1.5 w-full bg-muted/60 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full bg-success/80 rounded-full transition-all"
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                              <div className="flex justify-between text-[10px] text-muted-foreground">
+                                <span>Bought: {formatCompactNumber(item.buyAmount)}</span>
+                                <span>Sold: {formatCompactNumber(item.sellAmount)}</span>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Top Distributors (Net Sellers) */}
+                  <div className="rounded-lg border border-border/60 bg-background/40 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-destructive"></span>
+                        <h4 className="text-sm font-semibold text-destructive">Top Distributors (Net Sellers)</h4>
+                      </div>
+                      <span className="text-xs text-muted-foreground">Institutional Offloading</span>
+                    </div>
+                    {brokerActivity.distributors.length === 0 ? (
+                      <p className="text-xs text-muted-foreground py-6 text-center">No net seller distribution detected</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {brokerActivity.distributors.map((item, idx) => {
+                          const maxDist = Math.abs(brokerActivity.distributors[0]?.netAmount || -1)
+                          const pct = Math.min(100, Math.round((Math.abs(item.netAmount) / maxDist) * 100))
+                          const isStarred = watchlist.brokers.includes(item.broker)
+                          return (
+                            <div key={item.broker} className="space-y-1">
+                              <div className="flex items-center justify-between text-xs">
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <button
+                                    onClick={() => toggleBrokerWatchlist(item.broker)}
+                                    className="text-muted-foreground hover:text-warning transition-colors p-0.5 cursor-pointer"
+                                    title={isStarred ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                                  >
+                                    <Star className={`w-3 h-3 ${isStarred ? 'text-warning fill-warning' : ''}`} />
+                                  </button>
+                                  <span className="font-mono text-muted-foreground text-[10px]">#{idx + 1}</span>
+                                  <Link
+                                    to={`/brokers?broker=${item.broker}`}
+                                    className="font-medium hover:underline text-primary truncate max-w-[180px] sm:max-w-[240px]"
+                                    title={`View ${item.label}`}
+                                  >
+                                    {item.label}
+                                  </Link>
+                                </div>
+                                <div className="text-right whitespace-nowrap pl-2">
+                                  <span className="font-semibold text-destructive">
+                                    {formatCurrency(item.netAmount)}
+                                  </span>
+                                  <span className="text-[10px] text-muted-foreground ml-1">
+                                    ({formatCompactNumber(item.netQty)} shares)
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="h-1.5 w-full bg-muted/60 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full bg-destructive/80 rounded-full transition-all"
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                              <div className="flex justify-between text-[10px] text-muted-foreground">
+                                <span>Sold: {formatCompactNumber(item.sellAmount)}</span>
+                                <span>Bought: {formatCompactNumber(item.buyAmount)}</span>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Top Gross Buyers */}
+                  <div className="rounded-lg border border-border/60 bg-background/40 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-sm font-semibold text-foreground">Top 5 Buyers by Amount</h4>
+                      <span className="text-xs text-muted-foreground">Gross Buy Volume</span>
+                    </div>
+                    <div className="space-y-3">
+                      {brokerActivity.topBuyers.map((item, idx) => {
+                        const maxBuy = brokerActivity.topBuyers[0]?.buyAmount || 1
+                        const pct = Math.min(100, Math.round((item.buyAmount / maxBuy) * 100))
+                        return (
+                          <div key={item.broker} className="space-y-1">
+                            <div className="flex items-center justify-between text-xs">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <span className="font-mono text-muted-foreground text-[10px]">#{idx + 1}</span>
+                                <Link
+                                  to={`/brokers?broker=${item.broker}`}
+                                  className="font-medium hover:underline text-primary truncate max-w-[180px] sm:max-w-[240px]"
+                                >
+                                  {item.label}
+                                </Link>
+                              </div>
+                              <span className="font-semibold text-success tabular-nums pl-2">
+                                {formatCurrency(item.buyAmount)}
+                              </span>
+                            </div>
+                            <div className="h-1.5 w-full bg-muted/60 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-primary/80 rounded-full transition-all"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Top Gross Sellers */}
+                  <div className="rounded-lg border border-border/60 bg-background/40 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-sm font-semibold text-foreground">Top 5 Sellers by Amount</h4>
+                      <span className="text-xs text-muted-foreground">Gross Sell Volume</span>
+                    </div>
+                    <div className="space-y-3">
+                      {brokerActivity.topSellers.map((item, idx) => {
+                        const maxSell = brokerActivity.topSellers[0]?.sellAmount || 1
+                        const pct = Math.min(100, Math.round((item.sellAmount / maxSell) * 100))
+                        return (
+                          <div key={item.broker} className="space-y-1">
+                            <div className="flex items-center justify-between text-xs">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <span className="font-mono text-muted-foreground text-[10px]">#{idx + 1}</span>
+                                <Link
+                                  to={`/brokers?broker=${item.broker}`}
+                                  className="font-medium hover:underline text-primary truncate max-w-[180px] sm:max-w-[240px]"
+                                >
+                                  {item.label}
+                                </Link>
+                              </div>
+                              <span className="font-semibold text-destructive tabular-nums pl-2">
+                                {formatCurrency(item.sellAmount)}
+                              </span>
+                            </div>
+                            <div className="h-1.5 w-full bg-muted/60 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-muted-foreground/50 rounded-full transition-all"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </GlassCard>
 
         <div className="rounded-xl border border-border/60 bg-card shadow-retool-sm overflow-hidden">
           <div className="p-6 pb-0">
