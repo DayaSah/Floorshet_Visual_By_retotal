@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import {
   type ColumnDef,
   type SortingState,
@@ -61,7 +62,18 @@ export default function Floorsheet() {
       {
         accessorKey: 'symbol',
         header: 'Symbol',
-        cell: ({ getValue }) => <span className="font-medium">{getValue<string>()}</span>,
+        cell: ({ getValue }) => {
+          const sym = getValue<string>()
+          return (
+            <Link
+              to={`/symbols?symbol=${encodeURIComponent(sym)}`}
+              className="font-semibold text-primary hover:underline hover:opacity-80 transition-opacity"
+              title={`View ${sym} analysis`}
+            >
+              {sym}
+            </Link>
+          )
+        },
       },
       {
         accessorKey: 'buyer_broker',
@@ -69,12 +81,13 @@ export default function Floorsheet() {
         cell: ({ getValue }) => {
           const id = getValue<string>()
           return (
-            <span
-              className="inline-flex items-center rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success"
-              title={getBrokerLabel(id)}
+            <Link
+              to={`/brokers?broker=${encodeURIComponent(id)}`}
+              className="inline-flex items-center rounded-full bg-success/10 hover:bg-success/20 px-2 py-0.5 text-xs font-medium text-success transition-colors cursor-pointer"
+              title={`View broker #${id} (${getBrokerLabel(id)}) analysis`}
             >
               #{id}
-            </span>
+            </Link>
           )
         },
       },
@@ -84,12 +97,13 @@ export default function Floorsheet() {
         cell: ({ getValue }) => {
           const id = getValue<string>()
           return (
-            <span
-              className="inline-flex items-center rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive"
-              title={getBrokerLabel(id)}
+            <Link
+              to={`/brokers?broker=${encodeURIComponent(id)}`}
+              className="inline-flex items-center rounded-full bg-destructive/10 hover:bg-destructive/20 px-2 py-0.5 text-xs font-medium text-destructive transition-colors cursor-pointer"
+              title={`View broker #${id} (${getBrokerLabel(id)}) analysis`}
             >
               #{id}
-            </span>
+            </Link>
           )
         },
       },

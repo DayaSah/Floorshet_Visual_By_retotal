@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Area,
   AreaChart,
@@ -36,6 +37,7 @@ interface SymbolPoint {
 }
 
 export default function FloorsheetVisualization() {
+  const navigate = useNavigate()
   const { data, loading, error, dataAccessErrors, trigger } = useGetFloorsheetStats()
 
   useEffect(() => {
@@ -157,7 +159,16 @@ export default function FloorsheetVisualization() {
                     formatter={(value) => [Number(value).toLocaleString(), 'Amount']}
                     contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', color: 'hsl(var(--card-foreground))' }}
                   />
-                  <Bar dataKey="totalAmount" radius={[0, 4, 4, 0]}>
+                  <Bar
+                    dataKey="totalAmount"
+                    radius={[0, 4, 4, 0]}
+                    className="cursor-pointer"
+                    onClick={(entry) => {
+                      if (entry && (entry as any).symbol) {
+                        navigate(`/symbols?symbol=${encodeURIComponent((entry as any).symbol)}`)
+                      }
+                    }}
+                  >
                     {topSymbols.map((entry, index) => (
                       <Cell key={entry.symbol} fill={BAR_COLORS[index % BAR_COLORS.length] ?? CHART_PRIMARY} />
                     ))}

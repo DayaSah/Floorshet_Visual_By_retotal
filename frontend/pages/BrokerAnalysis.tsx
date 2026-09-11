@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   Bar,
   BarChart,
@@ -55,12 +56,30 @@ interface BrokerPoint {
 
 export default function BrokerAnalysis() {
   const { data, loading, error, dataAccessErrors, trigger } = useGetBrokerAnalysis()
-  const [selectedBroker, setSelectedBroker] = useState<string>('')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const urlBroker = searchParams.get('broker')?.trim() || ''
+  const [selectedBroker, setSelectedBroker] = useState<string>(urlBroker)
   const [sorting, setSorting] = useState<SortingState>([{ id: 'turnover', desc: true }])
 
+  const handleSelectBroker = (broker: string) => {
+    setSelectedBroker(broker)
+    if (broker) {
+      setSearchParams({ broker })
+      trigger({ broker })
+    } else {
+      setSearchParams({})
+      trigger()
+    }
+  }
+
   useEffect(() => {
-    trigger()
-  }, [])
+    if (urlBroker) {
+      setSelectedBroker(urlBroker)
+      trigger({ broker: urlBroker })
+    } else {
+      trigger()
+    }
+  }, [urlBroker])
 
   const ranking: BrokerPoint[] = useMemo(
     () =>
@@ -104,7 +123,22 @@ export default function BrokerAnalysis() {
 
   const columns = useMemo<ColumnDef<BrokerPoint>[]>(
     () => [
-      { accessorKey: 'label', header: 'Broker' },
+      {
+        accessorKey: 'label',
+        header: 'Broker',
+        cell: ({ row }) => {
+          const b = row.original
+          return (
+            <button
+              onClick={() => handleSelectBroker(b.broker)}
+              className="font-semibold text-primary hover:underline hover:opacity-80 transition-opacity text-left cursor-pointer"
+              title={`Analyze broker #${b.broker}`}
+            >
+              {b.label}
+            </button>
+          )
+        },
+      },
       {
         accessorKey: 'buyAmount',
         header: 'Buy Amount',
@@ -266,10 +300,7 @@ export default function BrokerAnalysis() {
             </div>
             <Select
               value={selectedBroker}
-              onValueChange={(value) => {
-                setSelectedBroker(value)
-                trigger({ broker: value })
-              }}
+              onValueChange={handleSelectBroker}
             >
               <SelectTrigger className="w-56 bg-background/60">
                 <SelectValue placeholder="Select a broker" />

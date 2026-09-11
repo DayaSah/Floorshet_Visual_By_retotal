@@ -14,12 +14,12 @@ This document outlines the 6-phase improvement roadmap to turn NEPSE Floorsheet 
 ---
 
 ## 📌 Phase 2: Interactive Cross-Page Drill-downs & URL State
-- [ ] Make symbols clickable in Floorsheet Table to route to `/symbols?symbol=<TICKER>`.
-- [ ] Make buyer and seller broker badges clickable to route to `/brokers?broker=<ID>`.
-- [ ] Integrate `useSearchParams` into `SymbolAnalysis.tsx` to automatically load symbol from URL.
-- [ ] Integrate `useSearchParams` into `BrokerAnalysis.tsx` to automatically load broker from URL.
-- [ ] Enable clicking top symbols/brokers in Overview and Broker Network to deep-link directly into analysis views.
-- [ ] Verify build and commit/push to `main`.
+- [x] Make symbols clickable in Floorsheet Table to route to `/symbols?symbol=<TICKER>`.
+- [x] Make buyer and seller broker badges clickable to route to `/brokers?broker=<ID>`.
+- [x] Integrate `useSearchParams` into `SymbolAnalysis.tsx` to automatically load symbol from URL.
+- [x] Integrate `useSearchParams` into `BrokerAnalysis.tsx` to automatically load broker from URL.
+- [x] Enable clicking top symbols/brokers in Overview and Broker Network to deep-link directly into analysis views.
+- [x] Verify build and commit/push to `main`.
 
 ---
 

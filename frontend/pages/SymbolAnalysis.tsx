@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   Area,
   AreaChart,
@@ -56,12 +57,30 @@ interface RankingPoint {
 
 export default function SymbolAnalysis() {
   const { data, loading, error, dataAccessErrors, trigger } = useGetSymbolAnalysis()
-  const [selectedSymbol, setSelectedSymbol] = useState<string>('')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const urlSymbol = searchParams.get('symbol')?.trim().toUpperCase() || ''
+  const [selectedSymbol, setSelectedSymbol] = useState<string>(urlSymbol)
   const [sorting, setSorting] = useState<SortingState>([{ id: 'totalAmount', desc: true }])
 
+  const handleSelectSymbol = (symbol: string) => {
+    setSelectedSymbol(symbol)
+    if (symbol) {
+      setSearchParams({ symbol })
+      trigger({ symbol })
+    } else {
+      setSearchParams({})
+      trigger()
+    }
+  }
+
   useEffect(() => {
-    trigger()
-  }, [])
+    if (urlSymbol) {
+      setSelectedSymbol(urlSymbol)
+      trigger({ symbol: urlSymbol })
+    } else {
+      trigger()
+    }
+  }, [urlSymbol])
 
   const ranking: RankingPoint[] = useMemo(
     () =>
@@ -117,7 +136,22 @@ export default function SymbolAnalysis() {
 
   const columns = useMemo<ColumnDef<RankingPoint>[]>(
     () => [
-      { accessorKey: 'symbol', header: 'Symbol', cell: ({ getValue }) => <span className="font-medium">{getValue<string>()}</span> },
+      {
+        accessorKey: 'symbol',
+        header: 'Symbol',
+        cell: ({ getValue }) => {
+          const sym = getValue<string>()
+          return (
+            <button
+              onClick={() => handleSelectSymbol(sym)}
+              className="font-semibold text-primary hover:underline hover:opacity-80 transition-opacity text-left cursor-pointer"
+              title={`Deep dive into ${sym}`}
+            >
+              {sym}
+            </button>
+          )
+        },
+      },
       {
         accessorKey: 'totalAmount',
         header: 'Turnover',
@@ -291,10 +325,7 @@ export default function SymbolAnalysis() {
             </div>
             <Select
               value={selectedSymbol}
-              onValueChange={(value) => {
-                setSelectedSymbol(value)
-                trigger({ symbol: value })
-              }}
+              onValueChange={handleSelectSymbol}
             >
               <SelectTrigger className="w-48 bg-background/60">
                 <SelectValue placeholder="Select a symbol" />

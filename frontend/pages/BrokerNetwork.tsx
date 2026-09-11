@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Network, RefreshCw } from 'lucide-react'
 import { useGetBrokerNetwork } from '../hooks/backend/floorsheet'
@@ -148,7 +149,9 @@ export default function BrokerNetwork() {
                     <th className="p-2 text-left text-muted-foreground font-medium sticky left-0 bg-card">Buyer \ Seller</th>
                     {topBrokerIds.map((id: string) => (
                       <th key={id} className="p-2 text-center text-muted-foreground font-medium whitespace-nowrap" title={getBrokerLabel(id)}>
-                        #{id}
+                        <Link to={`/brokers?broker=${id}`} className="hover:text-primary hover:underline transition-colors">
+                          #{id}
+                        </Link>
                       </th>
                     ))}
                   </tr>
@@ -157,7 +160,9 @@ export default function BrokerNetwork() {
                   {topBrokerIds.map((rowId: string) => (
                     <tr key={rowId}>
                       <td className="p-2 font-medium text-muted-foreground sticky left-0 bg-card whitespace-nowrap" title={getBrokerLabel(rowId)}>
-                        #{rowId}
+                        <Link to={`/brokers?broker=${rowId}`} className="hover:text-primary hover:underline transition-colors">
+                          #{rowId}
+                        </Link>
                       </td>
                       {topBrokerIds.map((colId: string) => {
                         const value = matrixLookup.get(`${rowId}|${colId}`) ?? 0
