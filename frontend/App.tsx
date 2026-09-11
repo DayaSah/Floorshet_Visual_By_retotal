@@ -5,6 +5,7 @@ import { Activity, Clock, LayoutGrid, Loader2, Network, ScatterChart, Search, Ta
 import { cn } from './lib/shadcn/utils'
 import { ThemeToggle } from './components/ThemeToggle'
 import { CommandPalette } from './components/CommandPalette'
+import { WatchlistBar } from './components/WatchlistBar'
 import './styles/effects.css'
 
 const Floorsheet = lazy(() => import('./pages/Floorsheet'))
@@ -94,6 +95,7 @@ export default function App() {
           </div>
         </div>
       </nav>
+      <WatchlistBar onOpenSearch={() => setPaletteOpen(true)} />
       <div className="relative z-10">
         <Suspense fallback={<PageFallback />}>
           <Routes>
