@@ -118,6 +118,7 @@ This is the centerpiece of the Script Analysis tab. It plots the **day-by-day cu
   - *Flat horizontal line* = The broker stopped trading or is balancing buy and sell equally.
 - **Cumulative Shares**: Same as above, but measured in **number of shares** instead of rupees.
 - **Daily Net NPR**: Shows the exact net position taken on each single day (spikes indicate aggressive single-day buying or selling).
+- **📈 Price (NPR) Overlay Toggle**: Displays the daily closing price line (amber dashed) on a secondary right Y-axis directly on top of broker trajectories to reveal **Smart Money Divergence** (silent accumulation vs. retail distribution).
 
 #### 2. One-Click Trajectory Presets:
 Four smart preset buttons allow you to filter the chart in seconds:

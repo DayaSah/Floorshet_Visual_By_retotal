@@ -113,6 +113,7 @@ export interface ScriptAnalysisResponse {
     totalQuantity: number
     tradeCount: number
     avgRate: number
+    latestPrice?: number
   }
   topBrokers: Array<{
     broker: string
@@ -122,6 +123,8 @@ export interface ScriptAnalysisResponse {
     buyQty: number
     sellQty: number
     netQty: number
+    avgBuyRate?: number
+    avgSellRate?: number
     totalTurnover: number
     turnoverPct: number
   }>

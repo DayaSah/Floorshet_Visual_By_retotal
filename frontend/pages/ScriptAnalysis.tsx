@@ -94,6 +94,7 @@ export default function ScriptAnalysis() {
   const [chartMetric, setChartMetric] = useState<'cumulative_amount' | 'cumulative_qty' | 'daily_net'>(
     'cumulative_amount'
   )
+  const [showPriceOverlay, setShowPriceOverlay] = useState<boolean>(true)
   const [visibleBrokers, setVisibleBrokers] = useState<Record<string, boolean>>({})
   const [brokerTab, setBrokerTab] = useState<'accumulators' | 'distributors' | 'all'>('accumulators')
   const [sorting, setSorting] = useState<SortingState>([{ id: 'netAmount', desc: true }])
@@ -706,6 +707,19 @@ export default function ScriptAnalysis() {
                   >
                     Daily Net NPR
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowPriceOverlay((prev) => !prev)}
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded font-medium transition-all cursor-pointer border ${
+                      showPriceOverlay
+                        ? 'bg-amber-500/20 text-amber-400 border-amber-500/50 shadow-xs font-semibold ring-1 ring-amber-500/30'
+                        : 'border-transparent text-muted-foreground hover:text-foreground'
+                    }`}
+                    title="Toggle daily closing price line overlay on secondary right axis to spot smart money divergence"
+                  >
+                    <span className="w-2 h-2 rounded-full bg-amber-400" />
+                    <span>Price (NPR)</span>
+                  </button>
                 </div>
                 <Button variant="outline" size="sm" onClick={handleExportTimeline} className="gap-1.5 h-8 text-xs cursor-pointer">
                   <Download className="w-3 h-3" />
@@ -887,13 +901,27 @@ export default function ScriptAnalysis() {
                       stroke="hsl(var(--muted-foreground))"
                     />
                     <YAxis
+                      yAxisId="holdings"
                       tickFormatter={formatCompactNumber}
                       tick={{ fontSize: 11 }}
                       stroke="hsl(var(--muted-foreground))"
                     />
+                    {showPriceOverlay && (
+                      <YAxis
+                        yAxisId="price"
+                        orientation="right"
+                        domain={['auto', 'auto']}
+                        tickFormatter={(val) => `Rs.${val}`}
+                        tick={{ fontSize: 11 }}
+                        stroke="#f59e0b"
+                      />
+                    )}
                     <Tooltip
                       labelFormatter={(val) => `Date: ${formatDay(String(val))}`}
                       formatter={(val, name) => {
+                        if (name === 'close_price') {
+                          return [`Rs. ${Number(val).toFixed(1)}`, 'Close Price (LTP)']
+                        }
                         const brokerId = String(name).replace(/^(cum_net_|cum_qty_|daily_net_)/, '')
                         const label = getBrokerLabel(brokerId)
                         const isQty = chartMetric === 'cumulative_qty'
@@ -902,7 +930,7 @@ export default function ScriptAnalysis() {
                           : formatCurrency(Number(val))
                         return [formatted, label]
                       }}
-                      itemSorter={(item) => -(Math.abs(Number(item.value) || 0))}
+                      itemSorter={(item) => (item.name === 'close_price' ? -999999999 : -(Math.abs(Number(item.value) || 0)))}
                       wrapperStyle={{ maxHeight: 320, overflowY: 'auto', zIndex: 100 }}
                       contentStyle={{
                         backgroundColor: 'hsl(var(--card))',
@@ -913,6 +941,20 @@ export default function ScriptAnalysis() {
                         boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)',
                       }}
                     />
+                    {showPriceOverlay && (
+                      <Line
+                        yAxisId="price"
+                        type="monotone"
+                        dataKey="close_price"
+                        name="close_price"
+                        stroke="#f59e0b"
+                        strokeWidth={2.5}
+                        strokeDasharray="4 3"
+                        dot={{ r: 3, fill: '#f59e0b', strokeWidth: 0 }}
+                        activeDot={{ r: 6, fill: '#f59e0b' }}
+                        isAnimationActive={false}
+                      />
+                    )}
                     {(data?.topBrokers || []).map((b) => {
                       const isVisible = visibleBrokers[b.broker] ?? false
                       if (!isVisible) return null
@@ -927,6 +969,7 @@ export default function ScriptAnalysis() {
                       return (
                         <Line
                           key={b.broker}
+                          yAxisId="holdings"
                           type="monotone"
                           dataKey={dataKey}
                           name={dataKey}

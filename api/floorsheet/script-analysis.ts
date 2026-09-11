@@ -26,7 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ allSymbols, symbol: '', topBrokers: [], dailySeries: [] })
     }
 
-    const cacheKey = `script_analysis_v2_${symbol}_${range}_${customStart}_${customEnd}`
+    const cacheKey = `script_analysis_v3_${symbol}_${range}_${customStart}_${customEnd}`
 
     const resultData = await getCachedOrFetch(
       cacheKey,
@@ -61,14 +61,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             COUNT(*) as trade_count,
             COALESCE(AVG(rate), 0) as avg_rate,
             MIN(trade_time::date) as actual_start_date,
-            MAX(trade_time::date) as actual_end_date
+            MAX(trade_time::date) as actual_end_date,
+            (ARRAY_AGG(rate ORDER BY trade_time DESC))[1] as latest_rate
           FROM floorsheet_raw
           WHERE symbol = $1 ${dateCondition}
         `
         const kpiResult = await pool.query(kpiQuery, params)
         const kpiRow = kpiResult.rows[0] || {}
 
-        // 2. Broker Aggregations for this symbol & date range
+        // 2. Daily Price Tracking (VWAP & Close Price)
+        const priceQuery = `
+          SELECT
+            trade_time::date as day,
+            ROUND(SUM(amount)::numeric / NULLIF(SUM(quantity), 0), 2) as vwap,
+            (ARRAY_AGG(rate ORDER BY trade_time DESC))[1] as close_price
+          FROM floorsheet_raw
+          WHERE symbol = $1 ${dateCondition}
+          GROUP BY trade_time::date
+          ORDER BY day ASC
+        `
+        const priceResult = await pool.query(priceQuery, params)
+        const priceMap = new Map<string, { close_price: number; vwap: number }>()
+        for (const pRow of priceResult.rows) {
+          const d = String(pRow.day).slice(0, 10)
+          priceMap.set(d, {
+            close_price: Number(pRow.close_price) || 0,
+            vwap: Number(pRow.vwap) || 0,
+          })
+        }
+
+        // 3. Broker Aggregations for this symbol & date range
         const brokerQuery = `
           WITH filtered AS (
             SELECT trade_time, buyer_broker, seller_broker, amount, quantity, rate
@@ -97,21 +119,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const brokerResult = await pool.query(brokerQuery, params)
         const totalTurnover = Number(kpiRow.total_amount) || 1
 
-        const topBrokers = brokerResult.rows.map((r: any) => ({
-          broker: r.broker,
-          buyAmount: Number(r.buy_amount),
-          sellAmount: Number(r.sell_amount),
-          netAmount: Number(r.net_amount),
-          buyQty: Number(r.buy_qty),
-          sellQty: Number(r.sell_qty),
-          netQty: Number(r.net_qty),
-          totalTurnover: Number(r.total_amount),
-          turnoverPct: (Number(r.total_amount) / totalTurnover) * 100,
-        }))
+        const topBrokers = brokerResult.rows.map((r: any) => {
+          const buyAmount = Number(r.buy_amount)
+          const sellAmount = Number(r.sell_amount)
+          const buyQty = Number(r.buy_qty)
+          const sellQty = Number(r.sell_qty)
+          const avgBuyRate = buyQty > 0 ? buyAmount / buyQty : 0
+          const avgSellRate = sellQty > 0 ? sellAmount / sellQty : 0
+
+          return {
+            broker: r.broker,
+            buyAmount,
+            sellAmount,
+            netAmount: Number(r.net_amount),
+            buyQty,
+            sellQty,
+            netQty: Number(r.net_qty),
+            avgBuyRate: Math.round(avgBuyRate * 100) / 100,
+            avgSellRate: Math.round(avgSellRate * 100) / 100,
+            totalTurnover: Number(r.total_amount),
+            turnoverPct: (Number(r.total_amount) / totalTurnover) * 100,
+          }
+        })
 
         const allTradedBrokerIds = topBrokers.map((b: any) => String(b.broker))
 
-        // 3. Daywise Breakdown for all active brokers
+        // 4. Daywise Breakdown for all active brokers
         let dailySeries: any[] = []
         let dailySeriesCumulative: any[] = []
 
@@ -163,7 +196,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const runningQty: Record<string, number> = {}
 
           dailySeriesCumulative = dailySeries.map((dayItem) => {
-            const cumItem: any = { day: dayItem.day }
+            const priceInfo = priceMap.get(dayItem.day)
+            const cumItem: any = {
+              day: dayItem.day,
+              close_price: priceInfo?.close_price ?? null,
+              vwap: priceInfo?.vwap ?? null,
+            }
             for (const bStr of allTradedBrokerIds) {
               const netToday = dayItem[`net_${bStr}`] || 0
               const qtyToday = dayItem[`qty_${bStr}`] || 0
@@ -189,6 +227,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             totalQuantity: Number(kpiRow.total_quantity),
             tradeCount: Number(kpiRow.trade_count),
             avgRate: Number(kpiRow.avg_rate),
+            latestPrice: Number(kpiRow.latest_rate) || Number(kpiRow.avg_rate) || 0,
           },
           topBrokers,
           dailySeries,
