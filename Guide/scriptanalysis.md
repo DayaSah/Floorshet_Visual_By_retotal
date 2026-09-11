@@ -173,9 +173,16 @@ Below the chart sits a ranked table displaying the numerical breakdown for the t
 ---
 
 ### F. CSV Data Export
-- **Export CSV** (Header): Downloads the complete broker breakdown table to a spreadsheet.
-- **Export Timeline** (Chart Header): Downloads the day-by-day net values for every broker into a CSV file.
+- **Export CSV** (Header): Downloads the complete broker breakdown table to a spreadsheet with average buy/sell rates.
+- **Export Timeline** (Chart Header): Downloads the day-by-day net values and closing prices for every broker into a CSV file.
 - Perfect for building custom models in Microsoft Excel, Google Sheets, or Python.
+
+---
+
+### G. Share Pro Card (Instant Institutional Flow Snapshot)
+- Click **Share Pro Card** in the top header to generate a branded, high-resolution social graphic.
+- **Copy Image**: Copies the PNG directly to your system clipboard with 1 click, ready to paste into Telegram groups, Discord, Viber, or X.
+- **Download PNG**: Saves a Retina-quality graphic with the company ticker, latest price, Smart Money Index score, top buyers, top sellers, and net holding footprints.
 
 ---
 

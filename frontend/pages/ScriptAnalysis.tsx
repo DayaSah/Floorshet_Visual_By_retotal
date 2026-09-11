@@ -21,12 +21,16 @@ import {
 import {
   ArrowUpDown,
   Calendar,
+  Camera,
+  Check,
   ChevronDown,
+  Copy,
   Download,
   FileSpreadsheet,
   Layers,
   RefreshCw,
   Search,
+  Share2,
   ShieldCheck,
   Sparkles,
   Star,
@@ -36,6 +40,7 @@ import {
   Wallet,
   X,
 } from 'lucide-react'
+import { toPng, toBlob } from 'html-to-image'
 import { useGetScriptAnalysis, type ScriptAnalysisResponse } from '../hooks/backend/floorsheet'
 import { Button } from '../lib/shadcn/button'
 import { Input } from '../lib/shadcn/input'
@@ -102,6 +107,57 @@ export default function ScriptAnalysis() {
   const [visibleBrokers, setVisibleBrokers] = useState<Record<string, boolean>>({})
   const [brokerTab, setBrokerTab] = useState<'accumulators' | 'distributors' | 'all'>('accumulators')
   const [sorting, setSorting] = useState<SortingState>([{ id: 'netAmount', desc: true }])
+
+  // Share Pro Card Modal State
+  const [showShareModal, setShowShareModal] = useState<boolean>(false)
+  const [isGeneratingCard, setIsGeneratingCard] = useState<boolean>(false)
+  const [isCopied, setIsCopied] = useState<boolean>(false)
+  const cardRef = useRef<HTMLDivElement>(null)
+
+  const handleDownloadSnapshot = async () => {
+    if (!cardRef.current) return
+    try {
+      setIsGeneratingCard(true)
+      const dataUrl = await toPng(cardRef.current, {
+        quality: 0.95,
+        pixelRatio: 2,
+        cacheBust: true,
+      })
+      const link = document.createElement('a')
+      link.download = `${selectedSymbol}-institutional-flow-snapshot.png`
+      link.href = dataUrl
+      link.click()
+    } catch (err) {
+      console.error('Error generating snapshot:', err)
+    } finally {
+      setIsGeneratingCard(false)
+    }
+  }
+
+  const handleCopySnapshot = async () => {
+    if (!cardRef.current) return
+    try {
+      setIsGeneratingCard(true)
+      const blob = await toBlob(cardRef.current, {
+        quality: 0.95,
+        pixelRatio: 2,
+        cacheBust: true,
+      })
+      if (blob && navigator.clipboard && window.ClipboardItem) {
+        await navigator.clipboard.write([
+          new ClipboardItem({ 'image/png': blob }),
+        ])
+        setIsCopied(true)
+        setTimeout(() => setIsCopied(false), 2500)
+      } else {
+        await handleDownloadSnapshot()
+      }
+    } catch (err) {
+      console.error('Error copying snapshot to clipboard:', err)
+    } finally {
+      setIsGeneratingCard(false)
+    }
+  }
 
   const [watchlist, setWatchlist] = useState(getWatchlist)
   const { data, loading, error, trigger } = useGetScriptAnalysis()
@@ -652,6 +708,15 @@ export default function ScriptAnalysis() {
             <Button variant="outline" size="sm" onClick={handleExportBrokers} className="gap-2 cursor-pointer">
               <Download className="w-3.5 h-3.5" />
               Export CSV
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => setShowShareModal(true)}
+              className="gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-xs cursor-pointer font-semibold"
+            >
+              <Share2 className="w-3.5 h-3.5" />
+              Share Pro Card
             </Button>
           </div>
         )}
@@ -1357,6 +1422,206 @@ export default function ScriptAnalysis() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Share Pro Card Modal (Feature G) */}
+      {showShareModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="relative w-full max-w-3xl bg-card border border-border/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border/60 bg-muted/30">
+              <div className="flex items-center gap-2.5">
+                <div className="p-1.5 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                  <Camera className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">Share Institutional Flow Snapshot</h3>
+                  <p className="text-xs text-muted-foreground">High-resolution branded graphic ready to share on Telegram, Viber, or X</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCopySnapshot}
+                  disabled={isGeneratingCard}
+                  className="gap-1.5 text-xs h-8 cursor-pointer"
+                >
+                  {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{isCopied ? 'Copied to Clipboard!' : 'Copy Image'}</span>
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleDownloadSnapshot}
+                  disabled={isGeneratingCard}
+                  className="gap-1.5 text-xs h-8 bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer font-semibold"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Download PNG</span>
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => setShowShareModal(false)}
+                  className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/50 transition-colors cursor-pointer ml-1"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body / Scrollable Preview */}
+            <div className="p-6 overflow-y-auto bg-muted/10 flex justify-center">
+              {/* The Actual Capturable Card Element */}
+              <div
+                ref={cardRef}
+                className="w-full max-w-2xl bg-[#090e1a] text-white p-6 rounded-2xl border border-slate-800 shadow-2xl space-y-5"
+                style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+              >
+                {/* Card Top Header */}
+                <div className="flex items-center justify-between pb-4 border-b border-slate-800/80">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center font-black text-xl text-white shadow-md">
+                      {selectedSymbol.slice(0, 2)}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl font-black tracking-tight text-white">{selectedSymbol}</span>
+                        {data?.kpis?.latestPrice ? (
+                          <span className="text-sm font-bold text-amber-400 font-mono px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/30">
+                            Rs. {Number(data.kpis.latestPrice).toFixed(1)}
+                          </span>
+                        ) : null}
+                      </div>
+                      <span className="text-xs text-slate-400">
+                        {data?.dateRange?.startDate} to {data?.dateRange?.endDate} • {selectedRange.toUpperCase()} Window
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <div className="text-xs font-bold tracking-wider text-emerald-400 uppercase flex items-center gap-1 justify-end">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Floorsheet Visualizer
+                    </div>
+                    <div className="text-[11px] text-slate-400 font-mono">floorsheet.retotal.com</div>
+                  </div>
+                </div>
+
+                {/* Score & Verdict Banner */}
+                {smartMoneyAnalysis && (
+                  <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3.5">
+                      <div
+                        className="w-14 h-14 rounded-xl flex flex-col items-center justify-center border font-black text-xl tabular-nums"
+                        style={{
+                          backgroundColor: `${smartMoneyAnalysis.verdictColor}20`,
+                          borderColor: `${smartMoneyAnalysis.verdictColor}50`,
+                          color: smartMoneyAnalysis.verdictColor,
+                        }}
+                      >
+                        <span>{smartMoneyAnalysis.score}</span>
+                        <span className="text-[9px] uppercase font-semibold text-slate-400">/ 100</span>
+                      </div>
+                      <div>
+                        <div className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Smart Money Verdict</div>
+                        <div className="text-sm font-bold mt-0.5" style={{ color: smartMoneyAnalysis.verdictColor }}>
+                          {smartMoneyAnalysis.verdictLabel}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="text-right text-xs space-y-1">
+                      <div className="text-slate-300">
+                        Buyers: <span className="text-emerald-400 font-bold">{smartMoneyAnalysis.buyerConcentration.toFixed(0)}%</span>
+                      </div>
+                      <div className="text-slate-300">
+                        Sellers: <span className="text-rose-400 font-bold">{smartMoneyAnalysis.sellerConcentration.toFixed(0)}%</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Key Headline Stats Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+                  <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800">
+                    <div className="text-[11px] text-slate-400">Total Turnover</div>
+                    <div className="text-sm font-bold text-white mt-0.5 tabular-nums">
+                      {formatCompactNumber(data?.kpis?.totalAmount || 0)}
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800">
+                    <div className="text-[11px] text-slate-400">Shares Traded</div>
+                    <div className="text-sm font-bold text-white mt-0.5 tabular-nums">
+                      {formatCompactNumber(data?.kpis?.totalQuantity || 0)}
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800">
+                    <div className="text-[11px] text-slate-400">Top Accumulator</div>
+                    <div className="text-sm font-bold text-emerald-400 mt-0.5">
+                      {topAccumulator ? `Broker #${topAccumulator.broker}` : 'None'}
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-lg bg-slate-900/60 border border-slate-800">
+                    <div className="text-[11px] text-slate-400">Top Distributor</div>
+                    <div className="text-sm font-bold text-rose-400 mt-0.5">
+                      {topDistributor ? `Broker #${topDistributor.broker}` : 'None'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Top 5 Accumulators vs Top 5 Distributors Mini Table */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  {/* Buyers Column */}
+                  <div className="p-3 rounded-xl bg-emerald-950/20 border border-emerald-500/20 space-y-2">
+                    <div className="font-bold text-emerald-400 text-xs flex items-center justify-between">
+                      <span>Top Accumulators (Buyers)</span>
+                      <span>Net Holding</span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {top5Accumulators.slice(0, 4).map((b) => (
+                        <div key={b.broker} className="flex items-center justify-between text-[11px] border-b border-slate-800/60 pb-1">
+                          <span className="font-medium text-slate-200">
+                            #{b.broker} {getBrokerLabel(b.broker).slice(0, 16)}
+                          </span>
+                          <span className="font-mono font-bold text-emerald-400">
+                            +{formatCompactNumber(b.netAmount)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Sellers Column */}
+                  <div className="p-3 rounded-xl bg-rose-950/20 border border-rose-500/20 space-y-2">
+                    <div className="font-bold text-rose-400 text-xs flex items-center justify-between">
+                      <span>Top Distributors (Sellers)</span>
+                      <span>Net Holding</span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {top5Distributors.slice(0, 4).map((b) => (
+                        <div key={b.broker} className="flex items-center justify-between text-[11px] border-b border-slate-800/60 pb-1">
+                          <span className="font-medium text-slate-200">
+                            #{b.broker} {getBrokerLabel(b.broker).slice(0, 16)}
+                          </span>
+                          <span className="font-mono font-bold text-rose-400">
+                            {formatCompactNumber(b.netAmount)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer Watermark */}
+                <div className="flex items-center justify-between text-[10px] text-slate-500 pt-2 border-t border-slate-800/80">
+                  <span>NEPSE Institutional Floorsheet Flow • Confidential Analysis</span>
+                  <span>Generated on {new Date().toLocaleDateString('en-GB')}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
