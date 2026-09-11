@@ -9,7 +9,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, Download, RefreshCw, Star, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, Download, RefreshCw, Repeat, Star, Waves, X } from 'lucide-react'
 import { useGetFloorsheetRaw } from '../hooks/backend/floorsheet'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../lib/shadcn/table'
 import { Button } from '../lib/shadcn/button'
@@ -40,6 +40,8 @@ export default function Floorsheet() {
   const [endDate, setEndDate] = useState('')
   const [serverPage, setServerPage] = useState(1)
   const [watchlistOnly, setWatchlistOnly] = useState(false)
+  const [whalesOnly, setWhalesOnly] = useState(false)
+  const [crossingsOnly, setCrossingsOnly] = useState(false)
   const [watchlist, setWatchlist] = useState(getWatchlist)
 
   useEffect(() => {
@@ -68,6 +70,9 @@ export default function Floorsheet() {
           watchlist.brokers.includes(row.buyer_broker) || watchlist.brokers.includes(row.seller_broker)
         if (!matchesWatchlistSymbol && !matchesWatchlistBroker) return false
       }
+      if (whalesOnly && Number(row.amount) < 1000000) return false
+      if (crossingsOnly && row.buyer_broker !== row.seller_broker) return false
+
       const matchesSymbol = symbolQuery === '' || row.symbol.toUpperCase().includes(symbolQuery)
       const matchesBroker =
         brokerQuery === '' || row.buyer_broker === brokerQuery || row.seller_broker === brokerQuery
@@ -76,7 +81,7 @@ export default function Floorsheet() {
       const matchesEnd = endDate === '' || tradeDate <= endDate
       return matchesSymbol && matchesBroker && matchesStart && matchesEnd
     })
-  }, [data, symbolFilter, brokerFilter, startDate, endDate, watchlistOnly, watchlist])
+  }, [data, symbolFilter, brokerFilter, startDate, endDate, watchlistOnly, whalesOnly, crossingsOnly, watchlist])
 
   const columns = useMemo<ColumnDef<FloorsheetRow>[]>(
     () => [
@@ -293,7 +298,31 @@ export default function Floorsheet() {
               <Star className={`w-3.5 h-3.5 ${watchlistOnly ? 'fill-current' : 'text-warning fill-warning'}`} />
               Watchlist Only
             </Button>
-            {symbolFilter || brokerFilter || startDate || endDate || watchlistOnly ? (
+            <Button
+              variant={whalesOnly ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setWhalesOnly((prev) => !prev)}
+              className={`gap-1.5 h-9 transition-all cursor-pointer ${
+                whalesOnly ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''
+              }`}
+              title="Show only mega whale transactions (≥ Rs. 1,000,000)"
+            >
+              <Waves className="w-3.5 h-3.5" />
+              Whales (≥ 10L)
+            </Button>
+            <Button
+              variant={crossingsOnly ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setCrossingsOnly((prev) => !prev)}
+              className={`gap-1.5 h-9 transition-all cursor-pointer ${
+                crossingsOnly ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''
+              }`}
+              title="Show only in-house broker matched transactions (Buyer Broker = Seller Broker)"
+            >
+              <Repeat className="w-3.5 h-3.5" />
+              Crossings
+            </Button>
+            {symbolFilter || brokerFilter || startDate || endDate || watchlistOnly || whalesOnly || crossingsOnly ? (
               <Button
                 variant="ghost"
                 size="sm"
@@ -303,6 +332,8 @@ export default function Floorsheet() {
                   setStartDate('')
                   setEndDate('')
                   setWatchlistOnly(false)
+                  setWhalesOnly(false)
+                  setCrossingsOnly(false)
                 }}
                 className="gap-1 text-muted-foreground cursor-pointer"
               >

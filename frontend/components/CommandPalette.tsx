@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Activity, Clock, LayoutGrid, Network, ScatterChart, Search, Table2, Users } from 'lucide-react'
+import { Activity, Clock, Flame, LayoutGrid, Network, ScatterChart, Search, Table2, Users } from 'lucide-react'
 import { BROKER_DIRECTORY } from '../utils/brokerNames'
 
 interface PaletteItem {
@@ -37,6 +37,7 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: 
       { id: 'page-overview', title: 'Overview', subtitle: 'Market overview & volume metrics', category: 'Pages', icon: LayoutGrid, onSelect: () => navigate('/overview') },
       { id: 'page-symbols', title: 'Symbols', subtitle: 'Symbol rankings & price trend', category: 'Pages', icon: Activity, onSelect: () => navigate('/symbols') },
       { id: 'page-brokers', title: 'Brokers', subtitle: 'Broker net accumulation & daily history', category: 'Pages', icon: Users, onSelect: () => navigate('/brokers') },
+      { id: 'page-radar', title: 'Market Radar', subtitle: 'Whale tracker, block deals & internal crossings', category: 'Pages', icon: Flame, onSelect: () => navigate('/radar') },
       { id: 'page-network', title: 'Broker Network', subtitle: 'Counterparty trading pairs & matrix', category: 'Pages', icon: Network, onSelect: () => navigate('/broker-network') },
       { id: 'page-time', title: 'Time Patterns', subtitle: 'Minute buckets & day-of-week trends', category: 'Pages', icon: Clock, onSelect: () => navigate('/time-patterns') },
       { id: 'page-trade-size', title: 'Trade Size', subtitle: 'Block deal analysis & size distribution', category: 'Pages', icon: ScatterChart, onSelect: () => navigate('/trade-size') },

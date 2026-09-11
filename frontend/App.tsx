@@ -1,7 +1,7 @@
 /** @jsxRuntime automatic */
 import { type ReactNode, lazy, Suspense, useState, useEffect } from 'react'
 import { NavLink, Routes, Route } from 'react-router-dom'
-import { Activity, Clock, LayoutGrid, Loader2, Network, ScatterChart, Search, Table2, Users } from 'lucide-react'
+import { Activity, Clock, Flame, LayoutGrid, Loader2, Network, ScatterChart, Search, Table2, Users } from 'lucide-react'
 import { cn } from './lib/shadcn/utils'
 import { ThemeToggle } from './components/ThemeToggle'
 import { CommandPalette } from './components/CommandPalette'
@@ -12,6 +12,7 @@ const Floorsheet = lazy(() => import('./pages/Floorsheet'))
 const FloorsheetVisualization = lazy(() => import('./pages/FloorsheetVisualization'))
 const SymbolAnalysis = lazy(() => import('./pages/SymbolAnalysis'))
 const BrokerAnalysis = lazy(() => import('./pages/BrokerAnalysis'))
+const MarketRadar = lazy(() => import('./pages/MarketRadar'))
 const BrokerNetwork = lazy(() => import('./pages/BrokerNetwork'))
 const TimePatterns = lazy(() => import('./pages/TimePatterns'))
 const TradeSizeAnalysis = lazy(() => import('./pages/TradeSizeAnalysis'))
@@ -75,6 +76,7 @@ export default function App() {
             <NavTab to="/overview" icon={<LayoutGrid className="w-4 h-4" />} label="Overview" />
             <NavTab to="/symbols" icon={<Activity className="w-4 h-4" />} label="Symbols" />
             <NavTab to="/brokers" icon={<Users className="w-4 h-4" />} label="Brokers" />
+            <NavTab to="/radar" icon={<Flame className="w-4 h-4 text-warning" />} label="Market Radar" />
             <NavTab to="/broker-network" icon={<Network className="w-4 h-4" />} label="Broker Network" />
             <NavTab to="/time-patterns" icon={<Clock className="w-4 h-4" />} label="Time Patterns" />
             <NavTab to="/trade-size" icon={<ScatterChart className="w-4 h-4" />} label="Trade Size" />
@@ -103,6 +105,7 @@ export default function App() {
             <Route path="/overview" element={<FloorsheetVisualization />} />
             <Route path="/symbols" element={<SymbolAnalysis />} />
             <Route path="/brokers" element={<BrokerAnalysis />} />
+            <Route path="/radar" element={<MarketRadar />} />
             <Route path="/broker-network" element={<BrokerNetwork />} />
             <Route path="/time-patterns" element={<TimePatterns />} />
             <Route path="/trade-size" element={<TradeSizeAnalysis />} />

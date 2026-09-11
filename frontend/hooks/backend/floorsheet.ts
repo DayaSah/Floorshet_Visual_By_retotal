@@ -87,3 +87,16 @@ export const useGetBrokerAnalysis = createBackendHook<{ ranking: any[]; daily: a
 export const useGetBrokerNetwork = createBackendHook<{ topPairs: any[]; topBrokers: any[]; matrix: any[] }>('/api/floorsheet/network')
 export const useGetTimePatterns = createBackendHook<{ minuteBuckets: any[]; dayOfWeek: any[] }>('/api/floorsheet/time-patterns')
 export const useGetTradeSizeAnalysis = createBackendHook<{ sizeDistribution: any[]; blockDeals: any[] }>('/api/floorsheet/trade-size')
+export const useGetMarketRadar = createBackendHook<{
+  whales: any[]
+  crossings: any[]
+  topWhaleSymbols: any[]
+  topCrossingBrokers: any[]
+  stats: {
+    whale_count_1m: string
+    whale_volume_1m: string
+    cross_count: string
+    cross_volume: string
+    max_single_trade: string
+  }
+}>('/api/floorsheet/radar')
