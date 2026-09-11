@@ -42,10 +42,10 @@ This document outlines the 6-phase improvement roadmap to turn NEPSE Floorsheet 
 ---
 
 ## 📌 Phase 5: Global Quick Search / Command Palette (`Ctrl+K` / `⌘K`)
-- [ ] Build `frontend/components/CommandPalette.tsx` accessible via `Ctrl+K`, `⌘K`, or navbar search button.
-- [ ] Instant search across all NEPSE symbols, broker numbers & names, and page navigation.
-- [ ] Keyboard navigation (Arrow keys, Enter to jump, Escape to close).
-- [ ] Verify build and commit/push to `main`.
+- [x] Build `frontend/components/CommandPalette.tsx` accessible via `Ctrl+K`, `⌘K`, or navbar search button.
+- [x] Instant search across all NEPSE symbols, broker numbers & names, and page navigation.
+- [x] Keyboard navigation (Arrow keys, Enter to jump, Escape to close).
+- [x] Verify build and commit/push to `main`.
 
 ---
 

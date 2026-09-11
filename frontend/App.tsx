@@ -1,9 +1,10 @@
 /** @jsxRuntime automatic */
-import { type ReactNode, lazy, Suspense } from 'react'
+import { type ReactNode, lazy, Suspense, useState, useEffect } from 'react'
 import { NavLink, Routes, Route } from 'react-router-dom'
-import { Activity, Clock, LayoutGrid, Loader2, Network, ScatterChart, Table2, Users } from 'lucide-react'
+import { Activity, Clock, LayoutGrid, Loader2, Network, ScatterChart, Search, Table2, Users } from 'lucide-react'
 import { cn } from './lib/shadcn/utils'
 import { ThemeToggle } from './components/ThemeToggle'
+import { CommandPalette } from './components/CommandPalette'
 import './styles/effects.css'
 
 const Floorsheet = lazy(() => import('./pages/Floorsheet'))
@@ -44,6 +45,19 @@ function NavTab({ to, icon, label }: { to: string; icon: ReactNode; label: strin
 }
 
 export default function App() {
+  const [paletteOpen, setPaletteOpen] = useState(false)
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setPaletteOpen((prev) => !prev)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
   return (
     <div className="relative min-h-screen bg-background isolate overflow-x-hidden">
       {/* Decorative ambient background for the glassmorphism effect */}
@@ -65,6 +79,17 @@ export default function App() {
             <NavTab to="/trade-size" icon={<ScatterChart className="w-4 h-4" />} label="Trade Size" />
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={() => setPaletteOpen(true)}
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-border/60 bg-muted/40 hover:bg-accent text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              title="Search symbols, brokers, pages (⌘K / Ctrl+K)"
+            >
+              <Search className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Search...</span>
+              <kbd className="hidden sm:inline-block text-[10px] font-mono bg-background border border-border px-1 py-0.2 rounded text-muted-foreground">
+                ⌘K
+              </kbd>
+            </button>
             <ThemeToggle />
           </div>
         </div>
@@ -82,6 +107,8 @@ export default function App() {
           </Routes>
         </Suspense>
       </div>
+
+      <CommandPalette isOpen={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </div>
   )
 }
