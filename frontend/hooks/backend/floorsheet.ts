@@ -100,3 +100,35 @@ export const useGetMarketRadar = createBackendHook<{
     max_single_trade: string
   }
 }>('/api/floorsheet/radar')
+
+export interface ScriptAnalysisResponse {
+  symbol: string
+  range: string
+  dateRange: {
+    startDate: string
+    endDate: string
+  }
+  kpis: {
+    totalAmount: number
+    totalQuantity: number
+    tradeCount: number
+    avgRate: number
+  }
+  topBrokers: Array<{
+    broker: string
+    buyAmount: number
+    sellAmount: number
+    netAmount: number
+    buyQty: number
+    sellQty: number
+    netQty: number
+    totalTurnover: number
+    turnoverPct: number
+  }>
+  dailySeries: any[]
+  dailySeriesCumulative: any[]
+  allSymbols: string[]
+}
+
+export const useGetScriptAnalysis = createBackendHook<ScriptAnalysisResponse>('/api/floorsheet/script-analysis')
+
