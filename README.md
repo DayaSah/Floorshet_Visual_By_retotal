@@ -1,5 +1,10 @@
 # 📈 NEPSE Floorsheet Visualizer
 
+[![Vercel Deployment](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://floorshet-visual.vercel.app/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-floorshet--visual.vercel.app-brightgreen?style=for-the-badge)](https://floorshet-visual.vercel.app/)
+
+> 🌐 **Live Application**: [https://floorshet-visual.vercel.app/](https://floorshet-visual.vercel.app/)
+
 A full-stack, production-ready analytics and visualization dashboard for Nepal Stock Exchange (NEPSE) floorsheet trading data. Built with React 19, Vite, Tailwind CSS, Recharts, and Vercel Serverless Functions powered by CockroachDB.
 
 ---
@@ -18,7 +23,7 @@ flowchart TD
     subgraph Edge ["⚡ Vercel Edge & Serverless Layer"]
         CDN["Vercel Global Edge CDN (s-maxage Caching)"]
         API["Serverless API Routes (/api/floorsheet/*)"]
-        MemCache["In-Memory TTL Cache (api/db.ts)"]
+        MemCache["In-Memory TTL Cache (api/_db.ts)"]
         Hooks --> CDN --> API --> MemCache
     end
 
