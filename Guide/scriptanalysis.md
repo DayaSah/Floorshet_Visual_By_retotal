@@ -88,14 +88,28 @@ Select the time period you want to investigate:
 ### C. Script Summary KPIs
 Once you choose a stock, four top-level summary cards appear:
 
-1. **Total Script Turnover**: The gross NPR traded in this stock during the selected period.
+1. **Total Script Turnover**: The gross NPR traded in this stock during the selected period, with the Latest Traded Price (LTP).
 2. **Shares Traded**: Total shares exchanged, trade count, and the volume-weighted average rate.
-3. **Top Accumulator (Net Buyer)**: The #1 broker that accumulated the largest positive net position in NPR and shares.
-4. **Top Distributor (Net Seller)**: The #1 broker that offloaded the most shares in NPR.
+3. **Top Accumulator (Net Buyer)**: The #1 broker that accumulated the largest positive net position in NPR, their average buy cost, and whether their holding is currently in profit or underwater.
+4. **Top Distributor (Net Seller)**: The #1 broker that offloaded the most shares in NPR and their average exit rate.
 
 ---
 
-### D. The Daywise Line Diagram (Holding Trajectory)
+### D. Smart Money Sentiment & Accumulation Index (AI/Algorithmic Score)
+
+Directly below the KPIs, an automated quantitative engine analyzes the entire floorsheet to compute a **Smart Money Index (0 to 100)**:
+- **Score (0-100)**:
+  - `75 - 100`: **Strong Institutional Accumulation 🟢** (High smart money absorption)
+  - `60 - 74`: **Moderate Accumulation 🟢** (Steady, patient buying)
+  - `45 - 59`: **Neutral / Churning 🟡** (Two-sided intraday turnover)
+  - `30 - 44`: **Moderate Distribution 🟠** (Smart money trimming positions)
+  - `0 - 29`: **Heavy Institutional Distribution 🔴** (Aggressive smart money offloading)
+- **Plain-English Institutional Footprint Verdict**: A concise dynamic summary naming the lead buyers and sellers, total capital absorbed, and whether institutional demand dominates.
+- **Buyer vs. Seller Concentration**: Dual visual progress bars showing what percentage of total buy orders was captured by the Top 5 buyers versus Top 5 sellers (Pareto dominance).
+
+---
+
+### E. The Daywise Line Diagram (Holding Trajectory)
 
 This is the centerpiece of the Script Analysis tab. It plots the **day-by-day cumulative holding trajectory across brokerages**.
 

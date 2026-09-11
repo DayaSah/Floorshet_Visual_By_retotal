@@ -27,6 +27,8 @@ import {
   Layers,
   RefreshCw,
   Search,
+  ShieldCheck,
+  Sparkles,
   Star,
   TrendingDown,
   TrendingUp,
@@ -516,6 +518,110 @@ export default function ScriptAnalysis() {
     return sorted[0]?.netAmount < 0 ? sorted[0] : null
   }, [data?.topBrokers])
 
+  // Smart Money Accumulation Index & Verdict Calculation
+  const smartMoneyAnalysis = useMemo(() => {
+    if (!data?.topBrokers || data.topBrokers.length === 0 || !data?.kpis?.totalAmount) {
+      return null
+    }
+
+    const totalBuyVolume = data.topBrokers.reduce((acc, b) => acc + b.buyAmount, 0) || 1
+    const totalSellVolume = data.topBrokers.reduce((acc, b) => acc + b.sellAmount, 0) || 1
+
+    const buyers = [...data.topBrokers].filter((b) => b.netAmount > 0).sort((a, b) => b.netAmount - a.netAmount)
+    const sellers = [...data.topBrokers].filter((b) => b.netAmount < 0).sort((a, b) => a.netAmount - b.netAmount)
+
+    const top5Buyers = buyers.slice(0, 5)
+    const top5Sellers = sellers.slice(0, 5)
+
+    const top5BuyAmount = top5Buyers.reduce((acc, b) => acc + b.buyAmount, 0)
+    const top5SellAmount = top5Sellers.reduce((acc, b) => acc + b.sellAmount, 0)
+    const top5NetAmount = top5Buyers.reduce((acc, b) => acc + b.netAmount, 0)
+    const top5NetSelling = Math.abs(top5Sellers.reduce((acc, b) => acc + b.netAmount, 0))
+
+    const buyerConcentration = Math.min(100, (top5BuyAmount / totalBuyVolume) * 100)
+    const sellerConcentration = Math.min(100, (top5SellAmount / totalSellVolume) * 100)
+
+    // Component 1: Concentration Delta (0 to 40 pts)
+    const concentrationDelta = buyerConcentration - sellerConcentration
+    const concentrationPts = Math.min(40, Math.max(0, 20 + concentrationDelta * 0.8))
+
+    // Component 2: Net Absorption Balance (0 to 35 pts)
+    let absorptionPts = 17.5
+    if (top5NetAmount + top5NetSelling > 0) {
+      const netRatio = (top5NetAmount - top5NetSelling) / (top5NetAmount + top5NetSelling)
+      absorptionPts = Math.min(35, Math.max(0, 17.5 + netRatio * 17.5))
+    }
+
+    // Component 3: Trend Momentum from Cumulative Trajectory (0 to 25 pts)
+    let momentumPts = 12.5
+    const series = data.dailySeriesCumulative || []
+    if (series.length >= 2 && top5Buyers.length > 0) {
+      const lastIdx = series.length - 1
+      const startIdx = Math.max(0, series.length - 4)
+      const primaryBuyer = top5Buyers[0].broker
+      const endNet = series[lastIdx]?.[`cum_net_${primaryBuyer}`] || 0
+      const startNet = series[startIdx]?.[`cum_net_${primaryBuyer}`] || 0
+      if (endNet > startNet) {
+        momentumPts = 25
+      } else if (endNet < startNet) {
+        momentumPts = 5
+      }
+    }
+
+    const totalScore = Math.round(Math.min(100, Math.max(5, concentrationPts + absorptionPts + momentumPts)))
+
+    let verdictLabel = ''
+    let verdictColor = ''
+    let verdictBadgeClass = ''
+
+    if (totalScore >= 75) {
+      verdictLabel = 'Strong Institutional Accumulation'
+      verdictColor = '#10b981'
+      verdictBadgeClass = 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+    } else if (totalScore >= 60) {
+      verdictLabel = 'Moderate Accumulation'
+      verdictColor = '#06b6d4'
+      verdictBadgeClass = 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40'
+    } else if (totalScore >= 45) {
+      verdictLabel = 'Neutral / Churning'
+      verdictColor = '#f59e0b'
+      verdictBadgeClass = 'bg-amber-500/20 text-amber-400 border-amber-500/40'
+    } else if (totalScore >= 30) {
+      verdictLabel = 'Moderate Distribution'
+      verdictColor = '#f97316'
+      verdictBadgeClass = 'bg-orange-500/20 text-orange-400 border-orange-500/40'
+    } else {
+      verdictLabel = 'Heavy Institutional Distribution'
+      verdictColor = '#ef4444'
+      verdictBadgeClass = 'bg-rose-500/20 text-rose-400 border-rose-500/40'
+    }
+
+    // Compose plain-English dynamic summary
+    const topBuyerNames = top5Buyers.slice(0, 2).map((b) => `#${b.broker} (${getBrokerLabel(b.broker)})`).join(' and ') || 'No major buyer'
+    const topSellerNames = top5Sellers.slice(0, 2).map((b) => `#${b.broker} (${getBrokerLabel(b.broker)})`).join(' and ') || 'No major seller'
+
+    let summaryText = ''
+    if (totalScore >= 60) {
+      summaryText = `Top buyers led by ${topBuyerNames} accumulated a combined ${formatCurrency(top5NetAmount)}, capturing ${buyerConcentration.toFixed(0)}% of total buy orders while selling was distributed across ${sellers.length} brokerages. Smart money is actively absorbing circulating supply.`
+    } else if (totalScore <= 40) {
+      summaryText = `Selling pressure was concentrated in ${topSellerNames} offloading ${formatCurrency(top5NetSelling)}, outstripping buyer demand across the period. Caution advised as major institutional accounts are reducing exposure.`
+    } else {
+      summaryText = `Trading remains two-sided with high intraday churning. ${topBuyerNames} are absorbing shares while ${topSellerNames} are providing equal liquidity, keeping net institutional holding relatively balanced.`
+    }
+
+    return {
+      score: totalScore,
+      verdictLabel,
+      verdictColor,
+      verdictBadgeClass,
+      summaryText,
+      buyerConcentration,
+      sellerConcentration,
+      top5NetAmount,
+      top5NetSelling,
+    }
+  }, [data])
+
   return (
     <div className="text-foreground p-6 max-w-7xl mx-auto space-y-6">
       {/* Header & Title */}
@@ -745,6 +851,96 @@ export default function ScriptAnalysis() {
               icon={<TrendingDown className="w-5 h-5 text-destructive" />}
             />
           </div>
+
+          {/* Smart Money Sentiment & Accumulation Verdict Card */}
+          {smartMoneyAnalysis && (
+            <GlassCard className="border border-border/70 bg-gradient-to-br from-card/90 via-card/60 to-background shadow-retool-md">
+              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+                {/* Left: Score Gauge */}
+                <div className="flex items-center gap-4 shrink-0">
+                  <div className="relative flex items-center justify-center">
+                    <div
+                      className="w-20 h-20 rounded-2xl flex flex-col items-center justify-center border shadow-inner transition-all"
+                      style={{
+                        backgroundColor: `${smartMoneyAnalysis.verdictColor}15`,
+                        borderColor: `${smartMoneyAnalysis.verdictColor}40`,
+                      }}
+                    >
+                      <span
+                        className="text-2xl font-black tabular-nums tracking-tight"
+                        style={{ color: smartMoneyAnalysis.verdictColor }}
+                      >
+                        {smartMoneyAnalysis.score}
+                      </span>
+                      <span className="text-[10px] uppercase font-semibold tracking-wider text-muted-foreground">
+                        Score / 100
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium mb-1">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Smart Money Index</span>
+                    </div>
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border ${smartMoneyAnalysis.verdictBadgeClass}`}
+                    >
+                      <span
+                        className="w-2 h-2 rounded-full animate-pulse"
+                        style={{ backgroundColor: smartMoneyAnalysis.verdictColor }}
+                      />
+                      {smartMoneyAnalysis.verdictLabel}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Center: Plain-English Executive Summary */}
+                <div className="flex-1 lg:border-x lg:border-border/50 lg:px-6">
+                  <div className="text-xs font-semibold text-muted-foreground mb-1 flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+                    Institutional Footprint Verdict:
+                  </div>
+                  <p className="text-xs sm:text-sm text-foreground/90 leading-relaxed">
+                    {smartMoneyAnalysis.summaryText}
+                  </p>
+                </div>
+
+                {/* Right: Institutional Concentration Bars */}
+                <div className="w-full lg:w-72 space-y-2.5 shrink-0">
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-xs font-medium">
+                      <span className="text-muted-foreground">Top 5 Buyer Concentration:</span>
+                      <span className="text-emerald-400 font-mono font-bold">
+                        {smartMoneyAnalysis.buyerConcentration.toFixed(0)}%
+                      </span>
+                    </div>
+                    <div className="h-1.5 w-full bg-muted/70 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                        style={{ width: `${smartMoneyAnalysis.buyerConcentration}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-xs font-medium">
+                      <span className="text-muted-foreground">Top 5 Seller Concentration:</span>
+                      <span className="text-rose-400 font-mono font-bold">
+                        {smartMoneyAnalysis.sellerConcentration.toFixed(0)}%
+                      </span>
+                    </div>
+                    <div className="h-1.5 w-full bg-muted/70 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-rose-500 rounded-full transition-all duration-500"
+                        style={{ width: `${smartMoneyAnalysis.sellerConcentration}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </GlassCard>
+          )}
 
           {/* Section 1: Daywise Line Diagram */}
           <GlassCard>
