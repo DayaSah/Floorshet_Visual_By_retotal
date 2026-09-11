@@ -1,8 +1,8 @@
 {
   "private": true,
   "scripts": {
-    "dev": "concurrently -k -n \"api,web\" -c \"cyan,magenta\" \"tsx api/server.ts\" \"pnpm --filter frontend dev\"",
-    "dev:api": "tsx api/server.ts",
+    "dev": "concurrently -k -n \"api,web\" -c \"cyan,magenta\" \"tsx dev-server.ts\" \"pnpm --filter frontend dev\"",
+    "dev:api": "tsx dev-server.ts",
     "dev:web": "pnpm --filter frontend dev",
     "build": "pnpm --filter frontend build",
     "preview": "pnpm --filter frontend preview"

@@ -92,8 +92,7 @@ CockroachDB Serverless charges based on Request Units (RUs), where full table sc
 ```
 .
 ├── api/
-│   ├── db.ts                              # Database connection pool & in-memory caching helper
-│   ├── server.ts                          # Local Node.js HTTP development server
+│   ├── _db.ts                             # Database connection pool & in-memory caching helper (prefixed with _ to exclude from Vercel function endpoints)
 │   └── floorsheet/
 │       ├── brokers.ts                     # GET /api/floorsheet/brokers (rankings & broker daily history)
 │       ├── network.ts                     # GET /api/floorsheet/network (broker pairs & 10x10 matrix)
@@ -144,7 +143,7 @@ CockroachDB Serverless charges based on Request Units (RUs), where full table sc
 ├── .gitignore                             # Git exclusion list (protects .env, node_modules, dist)
 ├── package.json                           # Root workspace configuration with build & dev scripts
 ├── pnpm-lock.yaml                         # Deterministic pnpm dependency lockfile
-├── pnpm-workspace.yaml                    # Monorepo definition for pnpm
+├── dev-server.ts                          # Local Node.js development server
 ├── vercel.json                            # Vercel deployment configuration with SPA rewrites
 └── README.md                              # Comprehensive project documentation
 ```
@@ -154,8 +153,8 @@ CockroachDB Serverless charges based on Request Units (RUs), where full table sc
 ## 🔍 Detailed Function of Each File
 
 ### 1. API Layer (`api/`)
-- **[`api/db.ts`](api/db.ts)**: Configures the PostgreSQL/CockroachDB connection pool using `pg.Pool`. Implements `getCachedOrFetch<T>` for in-memory caching with configurable TTL and `setCacheHeaders` for Vercel Edge CDN headers.
-- **[`api/server.ts`](api/server.ts)**: Node.js HTTP server running on port `3001` for local development, dispatching requests to `/api/floorsheet/*` handlers and injecting mock Vercel request/response objects.
+- **[`api/_db.ts`](api/_db.ts)**: Configures the PostgreSQL/CockroachDB connection pool using `pg.Pool`. Implements `getCachedOrFetch<T>` for in-memory caching with configurable TTL and `setCacheHeaders` for Vercel Edge CDN headers. Prefixed with an underscore (`_`) so Vercel ignores it as an API route and treats it strictly as an internal module.
+- **[`dev-server.ts`](dev-server.ts)**: Node.js HTTP server running on port `3001` for local development, dispatching requests to `/api/floorsheet/*` handlers and injecting mock Vercel request/response objects.
 - **[`api/floorsheet/raw.ts`](api/floorsheet/raw.ts)**: Handler for `/api/floorsheet/raw`. Returns the latest floorsheet transactions using the `idx_trade_time` index with a capped limit (`500` default, max `1000`).
 - **[`api/floorsheet/stats.ts`](api/floorsheet/stats.ts)**: Handler for `/api/floorsheet/stats`. Groups trading volume by day and calculates top 10 traded stocks by turnover.
 - **[`api/floorsheet/symbols.ts`](api/floorsheet/symbols.ts)**: Handler for `/api/floorsheet/symbols`. Computes min/max/first/last prices, turnover, and percentage price changes for symbols. If a `?symbol=XYZ` parameter is provided, returns its trade timeline.
