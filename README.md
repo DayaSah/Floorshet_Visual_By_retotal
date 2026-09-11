@@ -108,7 +108,16 @@ CockroachDB Serverless charges based on Request Units (RUs), where full table sc
 │       ├── time-patterns.ts               # GET /api/floorsheet/time-patterns (5-min buckets & DOW)
 │       └── trade-size.ts                  # GET /api/floorsheet/trade-size (brackets & block deals)
 ├── Guide/
-│   └── scriptanalysis.md                  # Comprehensive Beginner's Guide for the Script Analysis module
+│   ├── README.md                          # Master documentation index and trader workflow hub
+│   ├── table.md                           # Floorsheet raw transactions table guide
+│   ├── overview.md                        # Market overview macro KPIs & turnover charts guide
+│   ├── symbols.md                         # Symbol screener, gainers/losers & volume chart guide
+│   ├── scriptanalysis.md                  # Flagship Script Analysis & Smart Money Index guide
+│   ├── brokers.md                         # Broker profiles, accumulation/distribution & portfolio guide
+│   ├── radar.md                           # Real-time Market Radar & Whale Tracker guide
+│   ├── broker_network.md                  # Inter-broker counterparty channels & 10x10 matrix guide
+│   ├── time_patterns.md                   # Intraday 5-min liquidity cycles & weekly seasonality guide
+│   └── trade_size.md                      # Trade size brackets & mega block deal (> 1M) guide
 ├── frontend/
 │   ├── index.html                         # Single Page Application HTML entry point
 │   ├── main.tsx                           # React 19 entry point with BrowserRouter & theme mount
@@ -197,7 +206,7 @@ CockroachDB Serverless charges based on Request Units (RUs), where full table sc
 - **[`frontend/utils/brokerNames.ts`](frontend/utils/brokerNames.ts)**: Complete mapping of all **101 official NEPSE registered stock brokers** (e.g., #58 Naasa Securities, #45 Imperial Securities), converting raw numbers to human-readable names.
 - **[`frontend/utils/format.ts`](frontend/utils/format.ts)**: Formatting utilities for numbers, currencies (`Rs.`), dates, and intraday minute intervals.
 - **[`frontend/utils/chartColors.ts`](frontend/utils/chartColors.ts)**: Centralized Recharts color constants matching theme CSS variables.
-- **[`Guide/scriptanalysis.md`](Guide/scriptanalysis.md)**: Exhaustive beginner's and trader's guide for the Script Analysis module, complete with real-world case studies, smart money interpretation matrix, and FAQ.
+- **[`Guide/`](Guide/README.md)**: Exhaustive beginner-to-pro guide library covering all 9 application tabs ([Table](Guide/table.md), [Overview](Guide/overview.md), [Symbols](Guide/symbols.md), [Script Analysis](Guide/scriptanalysis.md), [Brokers](Guide/brokers.md), [Market Radar](Guide/radar.md), [Broker Network](Guide/broker_network.md), [Time Patterns](Guide/time_patterns.md), [Trade Size](Guide/trade_size.md)), complete with real-world case studies, smart money interpretation matrices, and FAQs.
 
 ---
 
