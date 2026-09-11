@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import {
   Bar,
   BarChart,
@@ -20,7 +20,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { ArrowDown, ArrowUp, ArrowUpDown, Download, RefreshCw, Star, TrendingDown, TrendingUp, Users } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, Briefcase, Download, RefreshCw, Star, TrendingDown, TrendingUp, Users } from 'lucide-react'
 import { useGetBrokerAnalysis } from '../hooks/backend/floorsheet'
 import { Button } from '../lib/shadcn/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../lib/shadcn/select'
@@ -32,7 +32,7 @@ import { getBrokerLabel } from '../utils/brokerNames'
 import { CHART_DESTRUCTIVE, CHART_PRIMARY, CHART_SUCCESS, signColor } from '../utils/chartColors'
 import { formatCompactNumber, formatCurrency, formatDay, formatNumber } from '../utils/format'
 import { exportToCsv } from '../utils/csvExport'
-import { getWatchlist, subscribeWatchlist, toggleBrokerWatchlist } from '../utils/watchlist'
+import { getWatchlist, subscribeWatchlist, toggleBrokerWatchlist, toggleSymbolWatchlist } from '../utils/watchlist'
 
 interface BrokerRankingRow {
   broker: string
@@ -63,6 +63,7 @@ export default function BrokerAnalysis() {
   const [selectedBroker, setSelectedBroker] = useState<string>(urlBroker)
   const [sorting, setSorting] = useState<SortingState>([{ id: 'turnover', desc: true }])
   const [watchlist, setWatchlist] = useState(getWatchlist)
+  const [stockTab, setStockTab] = useState<'net_holdings' | 'volume'>('net_holdings')
 
   useEffect(() => {
     return subscribeWatchlist(setWatchlist)
@@ -127,6 +128,46 @@ export default function BrokerAnalysis() {
       })) ?? [],
     [data]
   )
+
+interface BrokerStockHolding {
+  symbol: string
+  buyAmount: number
+  sellAmount: number
+  netAmount: number
+  buyQty: number
+  sellQty: number
+  netQty: number
+  totalAmount: number
+}
+
+  const brokerStocks = useMemo(() => {
+    if (!selectedBroker || !data?.stocks) return { accumulators: [], distributors: [], topTraded: [] }
+
+    const parsed: BrokerStockHolding[] = data.stocks.map((s: any) => ({
+      symbol: s.symbol,
+      buyAmount: Number(s.buy_amount) || 0,
+      sellAmount: Number(s.sell_amount) || 0,
+      netAmount: Number(s.net_amount) || 0,
+      buyQty: Number(s.buy_qty) || 0,
+      sellQty: Number(s.sell_qty) || 0,
+      netQty: Number(s.net_qty) || 0,
+      totalAmount: Number(s.total_amount) || 0,
+    }))
+
+    const accumulators = parsed
+      .filter((s) => s.netAmount > 0)
+      .sort((a, b) => b.netAmount - a.netAmount)
+      .slice(0, 5)
+
+    const distributors = parsed
+      .filter((s) => s.netAmount < 0)
+      .sort((a, b) => a.netAmount - b.netAmount)
+      .slice(0, 5)
+
+    const topTraded = [...parsed].sort((a, b) => b.totalAmount - a.totalAmount).slice(0, 6)
+
+    return { accumulators, distributors, topTraded }
+  }, [data, selectedBroker])
 
   const columns = useMemo<ColumnDef<BrokerPoint>[]>(
     () => [
@@ -400,22 +441,240 @@ export default function BrokerAnalysis() {
           ) : loading ? (
             <div className="h-[300px] flex items-center justify-center text-muted-foreground text-sm">Loading...</div>
           ) : (
-            <ResponsiveContainer width="100%" height={320}>
-              <BarChart data={dailyForBroker}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis dataKey="day" tickFormatter={formatDay} tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                <YAxis tickFormatter={formatCompactNumber} tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                <Tooltip
-                  labelFormatter={(value) => formatDay(String(value))}
-                  formatter={(value, name) => [Number(value).toLocaleString(), String(name)]}
-                  contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', color: 'hsl(var(--card-foreground))' }}
-                />
-                <Legend />
-                <Bar dataKey="buyAmount" name="Buy" fill={CHART_SUCCESS} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="sellAmount" name="Sell" fill={CHART_DESTRUCTIVE} radius={[4, 4, 0, 0]} />
-                <Line type="monotone" dataKey="netAmount" name="Net" stroke={CHART_PRIMARY} strokeWidth={2.5} dot={false} />
-              </BarChart>
-            </ResponsiveContainer>
+            <>
+              <div>
+                <h3 className="text-sm font-medium mb-2 text-muted-foreground">Daily Buy / Sell / Net Turnover</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={dailyForBroker}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis dataKey="day" tickFormatter={formatDay} tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                    <YAxis tickFormatter={formatCompactNumber} tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
+                    <Tooltip
+                      labelFormatter={(value) => formatDay(String(value))}
+                      formatter={(value, name) => [Number(value).toLocaleString(), String(name)]}
+                      contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', color: 'hsl(var(--card-foreground))' }}
+                    />
+                    <Legend />
+                    <Bar dataKey="buyAmount" name="Buy" fill={CHART_SUCCESS} radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="sellAmount" name="Sell" fill={CHART_DESTRUCTIVE} radius={[4, 4, 0, 0]} />
+                    <Line type="monotone" dataKey="netAmount" name="Net" stroke={CHART_PRIMARY} strokeWidth={2.5} dot={false} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Broker Stock Holdings Breakdown */}
+              <div className="mt-8 pt-6 border-t border-border/60">
+                <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Briefcase className="w-5 h-5 text-primary" />
+                      <h3 className="text-base font-semibold">
+                        Stock Portfolio & Accumulation for Broker #{selectedBroker}
+                      </h3>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Breakdown of stocks heavily accumulated or distributed by this brokerage
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-lg border border-border/40 text-xs">
+                    <button
+                      onClick={() => setStockTab('net_holdings')}
+                      className={`px-2.5 py-1 rounded-md font-medium transition-all cursor-pointer ${
+                        stockTab === 'net_holdings'
+                          ? 'bg-background shadow-xs text-foreground'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      🧠 Net Accumulation / Distribution
+                    </button>
+                    <button
+                      onClick={() => setStockTab('volume')}
+                      className={`px-2.5 py-1 rounded-md font-medium transition-all cursor-pointer ${
+                        stockTab === 'volume'
+                          ? 'bg-background shadow-xs text-foreground'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      📊 Top Traded Stocks
+                    </button>
+                  </div>
+                </div>
+
+                {stockTab === 'net_holdings' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Top Accumulated Stocks */}
+                    <div className="rounded-lg border border-border/60 bg-background/40 p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-success"></span>
+                          <h4 className="text-sm font-semibold text-success">Top Accumulated Stocks (Net Bought)</h4>
+                        </div>
+                        <span className="text-xs text-muted-foreground">Bullish Inflow</span>
+                      </div>
+                      {brokerStocks.accumulators.length === 0 ? (
+                        <p className="text-xs text-muted-foreground py-6 text-center">No accumulated stocks found</p>
+                      ) : (
+                        <div className="space-y-3">
+                          {brokerStocks.accumulators.map((item, idx) => {
+                            const maxAcc = brokerStocks.accumulators[0]?.netAmount || 1
+                            const pct = Math.min(100, Math.round((item.netAmount / maxAcc) * 100))
+                            const isStarred = watchlist.symbols.includes(item.symbol)
+                            return (
+                              <div key={item.symbol} className="space-y-1">
+                                <div className="flex items-center justify-between text-xs">
+                                  <div className="flex items-center gap-1.5 min-w-0">
+                                    <button
+                                      onClick={() => toggleSymbolWatchlist(item.symbol)}
+                                      className="text-muted-foreground hover:text-warning transition-colors p-0.5 cursor-pointer"
+                                      title={isStarred ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                                    >
+                                      <Star className={`w-3 h-3 ${isStarred ? 'text-warning fill-warning' : ''}`} />
+                                    </button>
+                                    <span className="font-mono text-muted-foreground text-[10px]">#{idx + 1}</span>
+                                    <Link
+                                      to={`/symbols?symbol=${item.symbol}`}
+                                      className="font-bold hover:underline text-primary"
+                                      title={`Deep dive into ${item.symbol}`}
+                                    >
+                                      {item.symbol}
+                                    </Link>
+                                  </div>
+                                  <div className="text-right whitespace-nowrap pl-2">
+                                    <span className="font-semibold text-success">+{formatCurrency(item.netAmount)}</span>
+                                    <span className="text-[10px] text-muted-foreground ml-1">
+                                      (+{formatCompactNumber(item.netQty)} shares)
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="h-1.5 w-full bg-muted/60 rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full bg-success/80 rounded-full transition-all"
+                                    style={{ width: `${pct}%` }}
+                                  />
+                                </div>
+                                <div className="flex justify-between text-[10px] text-muted-foreground">
+                                  <span>Bought: {formatCompactNumber(item.buyAmount)}</span>
+                                  <span>Sold: {formatCompactNumber(item.sellAmount)}</span>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Top Distributed Stocks */}
+                    <div className="rounded-lg border border-border/60 bg-background/40 p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-destructive"></span>
+                          <h4 className="text-sm font-semibold text-destructive">Top Distributed Stocks (Net Sold)</h4>
+                        </div>
+                        <span className="text-xs text-muted-foreground">Bearish / Profit Taking</span>
+                      </div>
+                      {brokerStocks.distributors.length === 0 ? (
+                        <p className="text-xs text-muted-foreground py-6 text-center">No distributed stocks found</p>
+                      ) : (
+                        <div className="space-y-3">
+                          {brokerStocks.distributors.map((item, idx) => {
+                            const maxDist = Math.abs(brokerStocks.distributors[0]?.netAmount || -1)
+                            const pct = Math.min(100, Math.round((Math.abs(item.netAmount) / maxDist) * 100))
+                            const isStarred = watchlist.symbols.includes(item.symbol)
+                            return (
+                              <div key={item.symbol} className="space-y-1">
+                                <div className="flex items-center justify-between text-xs">
+                                  <div className="flex items-center gap-1.5 min-w-0">
+                                    <button
+                                      onClick={() => toggleSymbolWatchlist(item.symbol)}
+                                      className="text-muted-foreground hover:text-warning transition-colors p-0.5 cursor-pointer"
+                                      title={isStarred ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                                    >
+                                      <Star className={`w-3 h-3 ${isStarred ? 'text-warning fill-warning' : ''}`} />
+                                    </button>
+                                    <span className="font-mono text-muted-foreground text-[10px]">#{idx + 1}</span>
+                                    <Link
+                                      to={`/symbols?symbol=${item.symbol}`}
+                                      className="font-bold hover:underline text-primary"
+                                      title={`Deep dive into ${item.symbol}`}
+                                    >
+                                      {item.symbol}
+                                    </Link>
+                                  </div>
+                                  <div className="text-right whitespace-nowrap pl-2">
+                                    <span className="font-semibold text-destructive">
+                                      {formatCurrency(item.netAmount)}
+                                    </span>
+                                    <span className="text-[10px] text-muted-foreground ml-1">
+                                      ({formatCompactNumber(item.netQty)} shares)
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="h-1.5 w-full bg-muted/60 rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full bg-destructive/80 rounded-full transition-all"
+                                    style={{ width: `${pct}%` }}
+                                  />
+                                </div>
+                                <div className="flex justify-between text-[10px] text-muted-foreground">
+                                  <span>Sold: {formatCompactNumber(item.sellAmount)}</span>
+                                  <span>Bought: {formatCompactNumber(item.buyAmount)}</span>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-border/60 bg-background/40 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-sm font-semibold text-foreground">Top Traded Stocks by Turnover</h4>
+                      <span className="text-xs text-muted-foreground">Total Combined Buy + Sell</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {brokerStocks.topTraded.map((item, idx) => {
+                        const isStarred = watchlist.symbols.includes(item.symbol)
+                        return (
+                          <div key={item.symbol} className="p-3 rounded-lg border border-border/50 bg-background/60 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  onClick={() => toggleSymbolWatchlist(item.symbol)}
+                                  className="text-muted-foreground hover:text-warning transition-colors p-0.5 cursor-pointer"
+                                  title={isStarred ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                                >
+                                  <Star className={`w-3.5 h-3.5 ${isStarred ? 'text-warning fill-warning' : ''}`} />
+                                </button>
+                                <Link
+                                  to={`/symbols?symbol=${item.symbol}`}
+                                  className="font-bold text-sm text-primary hover:underline"
+                                >
+                                  {item.symbol}
+                                </Link>
+                              </div>
+                              <span className="text-[11px] font-mono text-muted-foreground">#{idx + 1}</span>
+                            </div>
+                            <div className="text-xs space-y-1">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Turnover:</span>
+                                <span className="font-medium tabular-nums">{formatCurrency(item.totalAmount)}</span>
+                              </div>
+                              <div className="flex justify-between text-[11px]">
+                                <span className="text-muted-foreground">Net Position:</span>
+                                <span className={`font-semibold tabular-nums ${item.netAmount >= 0 ? 'text-success' : 'text-destructive'}`}>
+                                  {item.netAmount >= 0 ? '+' : ''}{formatCurrency(item.netAmount)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </GlassCard>
 

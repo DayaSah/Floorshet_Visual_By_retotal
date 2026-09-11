@@ -37,34 +37,72 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       skipCache
     )
 
-    // 2. If specific broker requested, fetch daily history
+    // 2. If specific broker requested, fetch daily history and stock holding breakdown
     let daily: any[] = []
+    let stocks: any[] = []
     if (broker) {
       const brokerId = Number(broker)
-      daily = await getCachedOrFetch(
-        `broker_daily_${broker}`,
-        14400,
-        async () => {
-          const dailyQuery = `
-            SELECT trade_time::date as day,
-                   SUM(CASE WHEN buyer_broker = $1 THEN amount ELSE 0 END) as buy_amount,
-                   SUM(CASE WHEN seller_broker = $2 THEN amount ELSE 0 END) as sell_amount,
-                   SUM(CASE WHEN buyer_broker = $3 THEN quantity ELSE 0 END) as buy_qty,
-                   SUM(CASE WHEN seller_broker = $4 THEN quantity ELSE 0 END) as sell_qty
-            FROM floorsheet_raw
-            WHERE buyer_broker = $5 OR seller_broker = $6
-            GROUP BY day
-            ORDER BY day ASC
-          `
-          const result = await pool.query(dailyQuery, [brokerId, brokerId, brokerId, brokerId, brokerId, brokerId])
-          return result.rows
-        },
-        skipCache
-      )
+      if (!Number.isNaN(brokerId)) {
+        daily = await getCachedOrFetch(
+          `broker_daily_${broker}`,
+          14400,
+          async () => {
+            const dailyQuery = `
+              SELECT trade_time::date as day,
+                     SUM(CASE WHEN buyer_broker = $1 THEN amount ELSE 0 END) as buy_amount,
+                     SUM(CASE WHEN seller_broker = $2 THEN amount ELSE 0 END) as sell_amount,
+                     SUM(CASE WHEN buyer_broker = $3 THEN quantity ELSE 0 END) as buy_qty,
+                     SUM(CASE WHEN seller_broker = $4 THEN quantity ELSE 0 END) as sell_qty
+              FROM floorsheet_raw
+              WHERE buyer_broker = $5 OR seller_broker = $6
+              GROUP BY day
+              ORDER BY day ASC
+            `
+            const result = await pool.query(dailyQuery, [brokerId, brokerId, brokerId, brokerId, brokerId, brokerId])
+            return result.rows
+          },
+          skipCache
+        )
+
+        stocks = await getCachedOrFetch(
+          `broker_stocks_${broker}`,
+          14400,
+          async () => {
+            const stocksQuery = `
+              WITH bought AS (
+                SELECT symbol, SUM(amount) as buy_amount, SUM(quantity) as buy_qty, COUNT(*) as buy_count
+                FROM floorsheet_raw
+                WHERE buyer_broker = $1
+                GROUP BY symbol
+              ),
+              sold AS (
+                SELECT symbol, SUM(amount) as sell_amount, SUM(quantity) as sell_qty, COUNT(*) as sell_count
+                FROM floorsheet_raw
+                WHERE seller_broker = $2
+                GROUP BY symbol
+              )
+              SELECT COALESCE(b.symbol, s.symbol) as symbol,
+                     COALESCE(b.buy_amount, 0) as buy_amount,
+                     COALESCE(s.sell_amount, 0) as sell_amount,
+                     COALESCE(b.buy_amount, 0) - COALESCE(s.sell_amount, 0) as net_amount,
+                     COALESCE(b.buy_qty, 0) as buy_qty,
+                     COALESCE(s.sell_qty, 0) as sell_qty,
+                     COALESCE(b.buy_qty, 0) - COALESCE(s.sell_qty, 0) as net_qty,
+                     COALESCE(b.buy_amount, 0) + COALESCE(s.sell_amount, 0) as total_amount
+              FROM bought b FULL OUTER JOIN sold s ON b.symbol = s.symbol
+              ORDER BY total_amount DESC
+              LIMIT 50
+            `
+            const result = await pool.query(stocksQuery, [brokerId, brokerId])
+            return result.rows
+          },
+          skipCache
+        )
+      }
     }
 
     setCacheHeaders(res, 86400, 300)
-    return res.status(200).json({ ranking, daily })
+    return res.status(200).json({ ranking, daily, stocks })
   } catch (error: any) {
     console.error('Error in broker analysis:', error)
     return res.status(500).json({ error: error.message || 'Internal Server Error' })

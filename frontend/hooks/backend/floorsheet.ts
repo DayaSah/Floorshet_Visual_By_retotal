@@ -83,7 +83,7 @@ export function createBackendHook<T>(url: string) {
 export const useGetFloorsheetRaw = createBackendHook<any[]>('/api/floorsheet/raw')
 export const useGetFloorsheetStats = createBackendHook<{ daily: any[]; topSymbols: any[] }>('/api/floorsheet/stats')
 export const useGetSymbolAnalysis = createBackendHook<{ ranking: any[]; trades: any[] }>('/api/floorsheet/symbols')
-export const useGetBrokerAnalysis = createBackendHook<{ ranking: any[]; daily: any[] }>('/api/floorsheet/brokers')
+export const useGetBrokerAnalysis = createBackendHook<{ ranking: any[]; daily: any[]; stocks?: any[] }>('/api/floorsheet/brokers')
 export const useGetBrokerNetwork = createBackendHook<{ topPairs: any[]; topBrokers: any[]; matrix: any[] }>('/api/floorsheet/network')
 export const useGetTimePatterns = createBackendHook<{ minuteBuckets: any[]; dayOfWeek: any[] }>('/api/floorsheet/time-patterns')
 export const useGetTradeSizeAnalysis = createBackendHook<{ sizeDistribution: any[]; blockDeals: any[] }>('/api/floorsheet/trade-size')
