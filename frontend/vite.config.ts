@@ -9,6 +9,11 @@ export default defineConfig({
       '@': path.resolve(import.meta.dirname, './'),
     },
   },
+  build: {
+    outDir: '../dist',
+    emptyOutDir: true,
+    chunkSizeWarningLimit: 1000,
+  },
   server: {
     port: 3000,
     proxy: {
