@@ -1,0 +1,227 @@
+# 📘 Beginner's Complete Guide to Script Analysis
+
+Welcome to the **Script Analysis** module of the **NEPSE Floorsheet Visualizer**! 
+
+This guide is designed for traders, retail investors, and market enthusiasts who want to understand **who is buying, who is selling, and how institutional money is moving** in any specific Nepal Stock Exchange (NEPSE) listed company.
+
+---
+
+## 📑 Table of Contents
+1. [What is Script Analysis & Why Does It Matter?](#1-what-is-script-analysis--why-does-it-matter)
+2. [Core Concepts Every Beginner Must Know](#2-core-concepts-every-beginner-must-know)
+3. [Step-by-Step Walkthrough of the Features](#3-step-by-step-walkthrough-of-the-features)
+   - [A. Script (Symbol) Selector](#a-script-symbol-selector)
+   - [B. Date Range Window](#b-date-range-window)
+   - [C. Script Summary KPIs](#c-script-summary-kpis)
+   - [D. The Daywise Line Diagram (Holding Trajectory)](#d-the-daywise-line-diagram-holding-trajectory)
+   - [E. Top 10 Broker Breakdown Table](#e-top-10-broker-breakdown-table)
+   - [F. CSV Data Export](#f-csv-data-export)
+4. [Real-World Example: Analyzing NABIL (Nabil Bank)](#4-real-world-example-analyzing-nabil-nabil-bank)
+5. [How to Spot Smart Money (Bullish vs. Bearish Signs)](#5-how-to-spot-smart-money-bullish-vs-bearish-signs)
+6. [Pro Tips & Shortcuts](#6-pro-tips--shortcuts)
+7. [Frequently Asked Questions (FAQ)](#7-frequently-asked-questions-faq)
+
+---
+
+## 1. What is Script Analysis & Why Does It Matter?
+
+On the Nepal Stock Exchange, stock prices do not move by accident. Large moves are fueled by **institutional investors, mutual funds, high-net-worth individuals (HNIs), and retail trading groups**.
+
+Every single transaction executed on the exchange is recorded in the **Floorsheet**. The **Script Analysis** tab aggregates hundreds of thousands of raw trade records for any selected stock and answers three vital questions:
+1. **Which brokerages are heavily accumulating (buying and holding) this stock?**
+2. **Which brokerages are dumping or distributing (selling off) their positions?**
+3. **How has each top broker's position evolved day-by-day over time?**
+
+By tracking institutional footprints, beginners can stop guessing and start trading alongside **smart money**.
+
+---
+
+## 2. Core Concepts Every Beginner Must Know
+
+Before exploring the tool, understand these four fundamental terms:
+
+| Term | What It Means | Why It Matters |
+| :--- | :--- | :--- |
+| **Script / Ticker** | The 3-6 letter trading symbol of a company (e.g., `NABIL`, `SHIVM`, `CHCL`, `GBIME`). | Identifies the exact stock you want to analyze. |
+| **Broker Number** | Licensed brokerage houses in Nepal (numbered #1 through #101, e.g., Broker #58 is Naasa Securities). | In NEPSE, institutional players often execute through specific major brokerages. |
+| **Gross Turnover** | Total Buy Amount + Total Sell Amount for a broker. | Indicates how actively that broker is trading the stock (churn and liquidity). |
+| **Net Holding (Net Position)** | `Buy Amount - Sell Amount` (or `Buy Shares - Sell Shares`). | **The most critical metric.** Shows whether a broker's clients are net accumulators or net dumpers. |
+
+### 🟢 Net Buyer (Accumulator)
+- If Broker #58 buys **Rs. 50 Lakhs** and sells only **Rs. 10 Lakhs**, their Net Position is **+Rs. 40 Lakhs**.
+- Their clients are taking delivery and locking shares away. This creates **buying support**.
+
+### 🔴 Net Seller (Distributor)
+- If Broker #34 buys **Rs. 5 Lakhs** and sells **Rs. 35 Lakhs**, their Net Position is **-Rs. 30 Lakhs**.
+- Their clients are liquidating shares and taking cash out. This creates **selling pressure**.
+
+---
+
+## 3. Step-by-Step Walkthrough of the Features
+
+When you open the **Script Analysis** tab (`/script-analysis`), you will see an intuitive control dashboard.
+
+```
++-----------------------------------------------------------------------------------------+
+| [ 🔍 Search Script (e.g. NABIL) ]   [ ⚡ 7D | ⚡ 15D | ⚡ 30D | All Time | 📅 Custom ]    |
+| Quick Picks: [NABIL] [SHIVM] [CHCL] [GBIME] [HDL] [NICA] [CIT]                          |
++-----------------------------------------------------------------------------------------+
+```
+
+### A. Script (Symbol) Selector
+1. **Search Bar**: Click on the input box and type any ticker (e.g., `NABIL` or `SHIVM`). An autocomplete list will instantly appear.
+2. **Quick Picks**: Tap any of the popular stock chips (`NABIL`, `SHIVM`, `CHCL`, etc.) to load that stock with a single click.
+3. **Watchlist Integration**: If you have starred any stocks in your Watchlist (⭐), they are highlighted in the dropdown.
+
+### B. Date Range Window
+Select the time period you want to investigate:
+- **⚡ Past 7 Days**: Ideal for short-term swing traders looking for immediate momentum or breakout accumulation.
+- **⚡ Past 15 Days** *(Default)*: The sweet spot for discovering multi-week institutional positioning.
+- **⚡ Past 30 Days**: Best for spotting steady, patient monthly accumulation patterns.
+- **All Time**: Analyzes the entire database history (July 2026 – September 2026).
+- **📅 Custom Range**: Allows you to enter specific `From` and `To` dates (e.g., right before an earnings announcement).
+
+> 💡 **Bonus Tip**: The URL automatically updates with your choices (e.g., `?symbol=NABIL&range=15d`). You can bookmark this link or send it to a friend, and it will open the exact same analysis!
+
+---
+
+### C. Script Summary KPIs
+Once you choose a stock, four top-level summary cards appear:
+
+1. **Total Script Turnover**: The gross NPR traded in this stock during the selected period.
+2. **Shares Traded**: Total shares exchanged, trade count, and the volume-weighted average rate.
+3. **Top Accumulator (Net Buyer)**: The #1 broker that accumulated the largest positive net position in NPR and shares.
+4. **Top Distributor (Net Seller)**: The #1 broker that offloaded the most shares in NPR.
+
+---
+
+### D. The Daywise Line Diagram (Holding Trajectory)
+
+This is the centerpiece of the Script Analysis tab. It plots the **day-by-day evolution of the top 10 brokers**.
+
+```
+  Net Holding (NPR)
+      ▲
+ +15M │                             ─── Broker #57 (Aggressive Accumulation)
+ +10M │                     ───────
+  +5M │             ───────         ─── Broker #92 (Steady Inflow)
+    0 ┼────────────────────────────────────────────────────────► Time (Days)
+  -5M │             ───────
+ -10M │                     ─────── ─── Broker #22 (Continuous Offloading)
+      ▼
+```
+
+#### 1. Metric View Modes (Switchable Buttons):
+- **Cumulative NPR (Net)**: Starts at Day 1 and plots the running total of net money each broker has accumulated.
+  - *Upward-sloping line* = The broker is buying more every day.
+  - *Downward-sloping line* = The broker is selling out every day.
+  - *Flat horizontal line* = The broker stopped trading or is balancing buy and sell equally.
+- **Cumulative Shares**: Same as above, but measured in **number of shares** instead of rupees.
+- **Daily Net NPR**: Shows the exact net position taken on each single day (spikes indicate aggressive single-day buying or selling).
+
+#### 2. Interactive Broker Visibility Toggles:
+- Above the chart, you will see color-coded pills for each of the top 10 brokers (e.g. `[● Broker #58] [● Broker #34]`).
+- Click any broker's pill to **turn their line on or off**.
+- *Example*: Want to compare only the biggest buyer vs. the biggest seller without visual clutter? Turn off the other 8 brokers and focus solely on those two lines!
+
+#### 3. Interactive Tooltip:
+- Hover your mouse (or tap on mobile) anywhere on the chart.
+- A popup reveals the exact date, registered broker names, and exact net rupees or shares accumulated up to that day.
+
+---
+
+### E. Top 10 Broker Breakdown Table
+
+Below the chart sits a ranked table displaying the numerical breakdown for the top brokers.
+
+#### Table Tabs:
+- 🟢 **Top 10 Accumulators**: Ranks brokers with positive net holdings from highest to lowest.
+- 🔴 **Top 10 Distributors**: Ranks brokers with negative net holdings from most aggressive seller to least.
+- 📊 **Top 10 by Gross Turnover**: Ranks brokers by total combined volume (buyers and sellers).
+
+#### Table Columns:
+1. **Rank (`#`)**: 1 to 10.
+2. **Broker**: Star button (⭐) to add to your Watchlist, plus the registered company name (e.g., `Naasa Securities (#58)`). Clicking the broker name opens their full brokerage profile.
+3. **Buy Amount & Shares**: Total value and unit count bought by that broker.
+4. **Sell Amount & Shares**: Total value and unit count sold by that broker.
+5. **Net Holding**: The net balance highlighted in green badge (`+Rs.`) or red badge (`-Rs.`), alongside net share count.
+6. **Turnover Share**: Visual progress bar showing what percentage of the entire stock's turnover went through this single brokerage.
+
+---
+
+### F. CSV Data Export
+- **Export CSV** (Header): Downloads the complete broker breakdown table to a spreadsheet.
+- **Export Timeline** (Chart Header): Downloads the day-by-day net values for every broker into a CSV file.
+- Perfect for building custom models in Microsoft Excel, Google Sheets, or Python.
+
+---
+
+## 4. Real-World Example: Analyzing NABIL (Nabil Bank)
+
+Let's walk through an actual analysis of **NABIL** over the **Past 15 Days**:
+
+### Step 1: Open the Tab & Select NABIL
+1. Navigate to **Script Analysis**.
+2. Click the `NABIL` quick chip or type `NABIL`.
+3. Ensure `Past 15 Days` is highlighted.
+
+### Step 2: Read the Headline Numbers
+- **Total Turnover**: Rs. 18.2 Crore (181.9M NPR).
+- **Total Shares**: 326,792 shares traded across 1,656 transactions.
+- **Top Accumulator**: Broker #57 (Aryatara Securities) with **+Rs. 1.02 Crore** (+18,547 shares).
+- **Top Distributor**: Broker #22 (Siprabi Securities) with **-Rs. 1.01 Crore** (-18,852 shares).
+
+### Step 3: Interpret the Line Diagram
+1. Look at the **Broker #57 (Aryatara)** line:
+   - It starts near zero on Day 1 and slopes steadily upward to `+Rs. 10.2M` by Day 11.
+   - **Conclusion**: Broker #57 was not a one-day wonder. They patiently accumulated shares almost every trading session.
+2. Look at the **Broker #22 (Siprabi)** line:
+   - It slopes steadily downward, reaching `-Rs. 10.1M`.
+   - **Conclusion**: An institution or major shareholder holding an account at Broker #22 was offloading a large block of shares.
+3. Look at **Broker #58 (Naasa)**:
+   - High gross turnover (over Rs. 2.2 Crore), but the cumulative net line stays near zero.
+   - **Conclusion**: Broker #58 clients are actively trading intraday or swing trading back and forth, rather than holding.
+
+### Step 4: The Strategic Takeaway
+- Even though Broker #22 dumped over 18,000 shares, the stock did not collapse because Broker #57, Broker #92, and Broker #45 absorbed all the supply.
+- If the selling pressure from Broker #22 dries up while Broker #57 continues buying, **the stock price is primed for an upward breakout!**
+
+---
+
+## 5. How to Spot Smart Money (Bullish vs. Bearish Signs)
+
+| Scenario | What You See on Script Analysis | Market Interpretation | Actionable Insight |
+| :--- | :--- | :--- | :--- |
+| **Institutional Accumulation (Bullish)** | 1 or 2 top brokers have massive positive net holdings, while sellers are fragmented across 20+ smaller brokers. | Strong hands are absorbing shares from weak retail sellers. | Favorable setup for an upward price move. |
+| **Institutional Distribution (Bearish)** | 1 or 2 top brokers have massive negative net holdings, while buyers are scattered retail traders. | Major players are using market liquidity to exit their positions. | Caution advised; risk of price drop. |
+| **Whale Absorption** | A major broker sells Rs. 1 Crore+, but another single broker steps in and buys Rs. 1 Crore+. | Block transfer / institutional handoff. | Price often consolidates and forms a strong support floor. |
+| **High Churn / Speculation** | High buy and sell amounts with net position near zero across all top 10 brokers. | Day trading and churning without long-term commitment. | Expect volatility without clear directional trend. |
+
+---
+
+## 6. Pro Tips & Shortcuts
+
+- ⌨️ **Quick Navigation (`⌘K` / `Ctrl+K`)**: Press `⌘K` anywhere in the app and type `Script Analysis` or type any stock symbol to jump instantly.
+- ⭐ **Star Your Tickers & Brokers**: Click the Star icon next to any broker or symbol. They will instantly appear on your sticky top Watchlist bar.
+- 📱 **Mobile Friendly**: You can install this platform as an app on your phone via the PWA "Install" prompt. On mobile, use your thumb to switch between 7D, 15D, and 30D views effortlessly.
+- 🔄 **Cross-Reference with Market Radar**: If you see a broker accumulating heavily in Script Analysis, switch to the **Market Radar** tab to check if they executed whale block deals (> 10 Lakhs).
+
+---
+
+## 7. Frequently Asked Questions (FAQ)
+
+### Q1: Does high broker accumulation guarantee that the stock will rise?
+**A:** No single indicator guarantees price movement. However, institutional accumulation shows where large capital is committed. When big players buy and hold, the floating market supply shrinks, making price increases much more probable.
+
+### Q2: What if a broker has a huge Buy Amount but also a huge Sell Amount?
+**A:** That indicates high liquidity and active turnover (such as retail clients buying while other clients of the same brokerage sell, or active swing traders). Always check the **Net Holding** column to see the true directional bias.
+
+### Q3: Why do some brokers show negative share amounts?
+**A:** A negative amount simply means that the clients of that broker sold more shares than they bought during that specific date window.
+
+### Q4: How frequently is the data updated?
+**A:** When you select a stock, data is fetched and cached in high-speed memory for 4 hours. You can click the **Refresh** button at any time to bypass cache and query the latest database records.
+
+---
+
+*Happy Trading & Smart Analysis! 🚀📊*
