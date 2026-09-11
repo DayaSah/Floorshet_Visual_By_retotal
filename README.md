@@ -9,6 +9,27 @@ A full-stack, production-ready analytics and visualization dashboard for Nepal S
 
 ---
 
+## 📚 User Guides & Feature Explanations
+
+> 💡 **New to the platform or looking to master institutional smart money tracking?**
+> We have created an exhaustive, beginner-to-pro guide for **every single tab** on the platform. Each guide features step-by-step walkthroughs, ASCII chart diagrams, real-world NEPSE case studies (e.g., NABIL, SHIVM, Naasa #58), and actionable trading patterns.
+>
+> 📖 **Start here**: Check out the **[Complete Guides Hub & Trader Workflow](Guide/README.md)**!
+
+| Tab & Route | Guide Document | What You'll Learn |
+| :--- | :--- | :--- |
+| **Floorsheet Table** (`/`) | [**`Guide/table.md`**](Guide/table.md) | How to filter 2.6M+ transactions, isolate whale orders (≥ 10L), detect internal crossings, and export custom CSV datasets. |
+| **Market Overview** (`/overview`) | [**`Guide/overview.md`**](Guide/overview.md) | Tracking macro turnover growth, market leadership bars, daily trade velocity, and identifying bull vs. bear market regimes. |
+| **Symbol Analysis** (`/symbols`) | [**`Guide/symbols.md`**](Guide/symbols.md) | Screening top gainers/losers, price/volume confirmation rules, and uncovering broker smart flow for any stock. |
+| **Script Analysis** (`/script-analysis`) | [**`Guide/scriptanalysis.md`**](Guide/scriptanalysis.md) | **Our Flagship Platform**: Smart Money Index (0–100 score & AI verdict), daywise broker holding trajectories, dual-axis price overlay, 4 presets (all 96 brokers), broker cost basis / PnL, and "Share Pro Card" branded PNG export. |
+| **Broker Analysis** (`/brokers`) | [**`Guide/brokers.md`**](Guide/brokers.md) | All 101 NEPSE broker profiles, accumulation vs. distribution rankings, daily inflow/outflow charts, and top stock portfolio holdings. |
+| **Market Radar** (`/radar`) | [**`Guide/radar.md`**](Guide/radar.md) | Live whale transaction feed (> Rs. 10 Lakhs), in-house broker crossings tracker, institutional concentration charts, and custom thresholds. |
+| **Broker Network** (`/broker-network`) | [**`Guide/broker_network.md`**](Guide/broker_network.md) | Counterparty channels, top 20 bilateral trading pairs, and decoding the 10x10 inter-broker turnover heatmap matrix. |
+| **Time Patterns** (`/time-patterns`) | [**`Guide/time_patterns.md`**](Guide/time_patterns.md) | Intraday 5-minute liquidity cycles (opening rush vs. power close), day-of-week volume seasonality (Sunday to Thursday), and execution timing tactics. |
+| **Trade Size** (`/trade-size`) | [**`Guide/trade_size.md`**](Guide/trade_size.md) | 6-bracket trade size distribution, 80/20 Pareto rule (retail noise vs. whale capital), and live mega block deals table (> Rs. 1M). |
+
+---
+
 ## 🏛️ System Architecture
 
 ```mermaid
@@ -262,3 +283,34 @@ Under **Settings -> Environment Variables**:
 - **Value**: Your CockroachDB connection string (`postgresql://...`)
 
 Click **Deploy**! 🚀
+
+---
+
+## 💖 Built with Passion & Dedication
+
+Building the **NEPSE Floorsheet Visualizer & Smart Money Platform** has been a labor of true passion, relentless dedication, and countless late-night engineering sessions. Our mission is simple yet ambitious: **to democratize institutional-grade market intelligence for every Nepali retail trader and investor.**
+
+From designing custom distributed CockroachDB covering indexes and sub-millisecond edge caching, to engineering the 0–100 Smart Money Index, dual-axis divergence charts, and high-resolution social card generators — every single line of code was crafted with extreme care, precision, and love.
+
+### 🌟 A Warm Welcome to New Users & Enthusiasts
+Whether you are:
+- A newcomer taking your first steps in the Nepal Stock Exchange,
+- An active swing trader hunting for institutional footprint confirmation,
+- Or a fellow engineer passionate about full-stack systems and financial technology,
+
+**You are warmly welcomed to this platform!** Explore the interactive tabs, read the [guides](Guide/README.md), star your favorite brokers and tickers, and make this your trusted daily market co-pilot.
+
+### 📬 Suggestions, Feedback & Direct Contact
+This project is continuously evolving, and your voice matters deeply to us. If you have:
+- Creative feature ideas or improvements,
+- Bug reports or UX feedback,
+- Suggestions for new analytical metrics,
+- Or simply want to connect, collaborate, or share your thoughts,
+
+Please don't hesitate to reach out directly!
+
+- 🌐 **Personal Website & Direct Contact**: [**jagdishsah.com.np**](https://jagdishsah.com.np)
+- 🐙 **GitHub Repository**: [DayaSah/Floorshet_Visual_By_retotal](https://github.com/DayaSah/Floorshet_Visual_By_retotal)
+- 💬 Feel free to open an [Issue](https://github.com/DayaSah/Floorshet_Visual_By_retotal/issues) or submit a Pull Request anytime!
+
+*Thank you for being part of this journey. Together, let's bring clarity, transparency, and data power to the Nepal Stock Exchange! 🚀📈💖*
