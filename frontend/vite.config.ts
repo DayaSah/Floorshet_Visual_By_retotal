@@ -12,7 +12,22 @@ export default defineConfig({
   build: {
     outDir: '../dist',
     emptyOutDir: true,
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/recharts')) {
+            return 'vendor-charts'
+          }
+          if (id.includes('node_modules/@tanstack/react-table')) {
+            return 'vendor-table'
+          }
+          if (id.includes('node_modules/lucide-react')) {
+            return 'vendor-icons'
+          }
+        },
+      },
+    },
   },
   server: {
     port: 3000,

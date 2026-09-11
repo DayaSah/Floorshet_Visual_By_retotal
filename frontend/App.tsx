@@ -1,16 +1,26 @@
 /** @jsxRuntime automatic */
-import type { ReactNode } from 'react'
+import { type ReactNode, lazy, Suspense } from 'react'
 import { NavLink, Routes, Route } from 'react-router-dom'
-import { Activity, Clock, LayoutGrid, Network, ScatterChart, Table2, Users } from 'lucide-react'
-import Floorsheet from './pages/Floorsheet'
-import FloorsheetVisualization from './pages/FloorsheetVisualization'
-import SymbolAnalysis from './pages/SymbolAnalysis'
-import BrokerAnalysis from './pages/BrokerAnalysis'
-import BrokerNetwork from './pages/BrokerNetwork'
-import TimePatterns from './pages/TimePatterns'
-import TradeSizeAnalysis from './pages/TradeSizeAnalysis'
+import { Activity, Clock, LayoutGrid, Loader2, Network, ScatterChart, Table2, Users } from 'lucide-react'
 import { cn } from './lib/shadcn/utils'
 import './styles/effects.css'
+
+const Floorsheet = lazy(() => import('./pages/Floorsheet'))
+const FloorsheetVisualization = lazy(() => import('./pages/FloorsheetVisualization'))
+const SymbolAnalysis = lazy(() => import('./pages/SymbolAnalysis'))
+const BrokerAnalysis = lazy(() => import('./pages/BrokerAnalysis'))
+const BrokerNetwork = lazy(() => import('./pages/BrokerNetwork'))
+const TimePatterns = lazy(() => import('./pages/TimePatterns'))
+const TradeSizeAnalysis = lazy(() => import('./pages/TradeSizeAnalysis'))
+
+function PageFallback() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3 text-muted-foreground animate-in fade-in duration-300">
+      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <p className="text-sm font-medium">Loading view...</p>
+    </div>
+  )
+}
 
 function NavTab({ to, icon, label }: { to: string; icon: ReactNode; label: string }) {
   return (
@@ -54,15 +64,17 @@ export default function App() {
         </div>
       </nav>
       <div className="relative z-10">
-        <Routes>
-          <Route path="/" element={<Floorsheet />} />
-          <Route path="/overview" element={<FloorsheetVisualization />} />
-          <Route path="/symbols" element={<SymbolAnalysis />} />
-          <Route path="/brokers" element={<BrokerAnalysis />} />
-          <Route path="/broker-network" element={<BrokerNetwork />} />
-          <Route path="/time-patterns" element={<TimePatterns />} />
-          <Route path="/trade-size" element={<TradeSizeAnalysis />} />
-        </Routes>
+        <Suspense fallback={<PageFallback />}>
+          <Routes>
+            <Route path="/" element={<Floorsheet />} />
+            <Route path="/overview" element={<FloorsheetVisualization />} />
+            <Route path="/symbols" element={<SymbolAnalysis />} />
+            <Route path="/brokers" element={<BrokerAnalysis />} />
+            <Route path="/broker-network" element={<BrokerNetwork />} />
+            <Route path="/time-patterns" element={<TimePatterns />} />
+            <Route path="/trade-size" element={<TradeSizeAnalysis />} />
+          </Routes>
+        </Suspense>
       </div>
     </div>
   )
