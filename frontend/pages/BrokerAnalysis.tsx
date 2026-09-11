@@ -20,7 +20,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { ArrowDown, ArrowUp, ArrowUpDown, RefreshCw, TrendingDown, TrendingUp, Users } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, Download, RefreshCw, TrendingDown, TrendingUp, Users } from 'lucide-react'
 import { useGetBrokerAnalysis } from '../hooks/backend/floorsheet'
 import { Button } from '../lib/shadcn/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../lib/shadcn/select'
@@ -31,6 +31,7 @@ import { SignBadge } from '../components/SignBadge'
 import { getBrokerLabel } from '../utils/brokerNames'
 import { CHART_DESTRUCTIVE, CHART_PRIMARY, CHART_SUCCESS, signColor } from '../utils/chartColors'
 import { formatCompactNumber, formatCurrency, formatDay, formatNumber } from '../utils/format'
+import { exportToCsv } from '../utils/csvExport'
 
 interface BrokerRankingRow {
   broker: string
@@ -180,24 +181,69 @@ export default function BrokerAnalysis() {
     getSortedRowModel: getSortedRowModel(),
   })
 
+  const handleExportCsv = () => {
+    if (selectedBroker && dailyForBroker.length > 0) {
+      exportToCsv(
+        `broker_${selectedBroker}_daily_${new Date().toISOString().slice(0, 10)}`,
+        [
+          { key: 'day', label: 'Date' },
+          { key: 'buyAmount', label: 'Buy Amount (NPR)' },
+          { key: 'sellAmount', label: 'Sell Amount (NPR)' },
+          { key: 'netAmount', label: 'Net Position (NPR)' },
+          { key: 'buyQty', label: 'Buy Volume' },
+          { key: 'sellQty', label: 'Sell Volume' },
+        ],
+        dailyForBroker
+      )
+    } else {
+      exportToCsv(
+        `nepse_broker_rankings_${new Date().toISOString().slice(0, 10)}`,
+        [
+          { key: 'broker', label: 'Broker #' },
+          { key: 'label', label: 'Broker Name' },
+          { key: 'buyAmount', label: 'Buy Amount (NPR)' },
+          { key: 'sellAmount', label: 'Sell Amount (NPR)' },
+          { key: 'netAmount', label: 'Net Amount (NPR)' },
+          { key: 'buyQty', label: 'Buy Qty' },
+          { key: 'sellQty', label: 'Sell Qty' },
+          { key: 'tradeCount', label: 'Trades' },
+          { key: 'turnover', label: 'Turnover (NPR)' },
+        ],
+        ranking
+      )
+    }
+  }
+
   return (
     <div className="text-foreground p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <div>
             <h1 className="text-2xl font-bold">Broker Analysis</h1>
             <p className="text-sm text-muted-foreground">Buy/sell activity, net position, and rankings by broker</p>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => trigger(undefined, { skipCache: true })}
-            disabled={loading}
-            className="gap-2 transition-transform hover:scale-105"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportCsv}
+              disabled={ranking.length === 0}
+              className="gap-2 transition-transform hover:scale-105"
+            >
+              <Download className="w-4 h-4" />
+              {selectedBroker ? `Export #${selectedBroker}` : 'Export CSV'}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => trigger(undefined, { skipCache: true })}
+              disabled={loading}
+              className="gap-2 transition-transform hover:scale-105"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
         </div>
 
         {error ? (

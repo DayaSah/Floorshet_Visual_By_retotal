@@ -9,7 +9,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, RefreshCw, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, Download, RefreshCw, X } from 'lucide-react'
 import { useGetFloorsheetRaw } from '../hooks/backend/floorsheet'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../lib/shadcn/table'
 import { Button } from '../lib/shadcn/button'
@@ -17,6 +17,7 @@ import { Input } from '../lib/shadcn/input'
 import { GlassCard } from '../components/GlassCard'
 import { getBrokerLabel } from '../utils/brokerNames'
 import { formatNumber, formatTradeTime } from '../utils/format'
+import { exportToCsv } from '../utils/csvExport'
 
 interface FloorsheetRow {
   contract_id: string
@@ -148,26 +149,55 @@ export default function Floorsheet() {
   const pageCount = table.getPageCount()
   const pageIndex = table.getState().pagination.pageIndex
 
+  const handleExportCsv = () => {
+    exportToCsv(
+      `nepse_floorsheet_${new Date().toISOString().slice(0, 10)}`,
+      [
+        { key: 'contract_id', label: 'Contract ID' },
+        { key: 'symbol', label: 'Symbol' },
+        { key: 'buyer_broker', label: 'Buyer Broker' },
+        { key: 'seller_broker', label: 'Seller Broker' },
+        { key: 'quantity', label: 'Quantity' },
+        { key: 'rate', label: 'Rate' },
+        { key: 'amount', label: 'Amount' },
+        { key: 'trade_time', label: 'Trade Time' },
+      ],
+      filteredData
+    )
+  }
+
   return (
     <div className="text-foreground p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <div>
             <h1 className="text-2xl font-bold">Floorsheet</h1>
             <p className="text-sm text-muted-foreground">
               All records from floorsheet_raw, ordered by trade time descending
             </p>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => trigger(undefined, { skipCache: true })}
-            disabled={loading}
-            className="gap-2 transition-transform hover:scale-105"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportCsv}
+              disabled={filteredData.length === 0}
+              className="gap-2 transition-transform hover:scale-105"
+            >
+              <Download className="w-4 h-4" />
+              Export CSV
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => trigger(undefined, { skipCache: true })}
+              disabled={loading}
+              className="gap-2 transition-transform hover:scale-105"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
         </div>
 
         {error ? (

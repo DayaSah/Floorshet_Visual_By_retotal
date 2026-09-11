@@ -22,7 +22,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { ArrowDown, ArrowUp, ArrowUpDown, RefreshCw, TrendingDown, TrendingUp, Wallet } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, Download, RefreshCw, TrendingDown, TrendingUp, Wallet } from 'lucide-react'
 import { useGetSymbolAnalysis } from '../hooks/backend/floorsheet'
 import { Button } from '../lib/shadcn/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../lib/shadcn/select'
@@ -32,6 +32,7 @@ import { KpiCard } from '../components/KpiCard'
 import { SignBadge } from '../components/SignBadge'
 import { CHART_PRIMARY, signColor } from '../utils/chartColors'
 import { formatCompactNumber, formatCurrency, formatDay, formatNumber } from '../utils/format'
+import { exportToCsv } from '../utils/csvExport'
 
 interface SymbolRankingRow {
   symbol: string
@@ -208,24 +209,65 @@ export default function SymbolAnalysis() {
   const gainersCount = ranking.filter((r) => r.pctChange >= 0).length
   const losersCount = ranking.length - gainersCount
 
+  const handleExportCsv = () => {
+    if (selectedSymbol && priceHistory.length > 0) {
+      exportToCsv(
+        `${selectedSymbol}_trades_${new Date().toISOString().slice(0, 10)}`,
+        [
+          { key: 'trade_time', label: 'Trade Time' },
+          { key: 'rate', label: 'Rate' },
+          { key: 'quantity', label: 'Quantity' },
+          { key: 'amount', label: 'Amount' },
+        ],
+        priceHistory
+      )
+    } else {
+      exportToCsv(
+        `nepse_symbol_rankings_${new Date().toISOString().slice(0, 10)}`,
+        [
+          { key: 'symbol', label: 'Symbol' },
+          { key: 'totalAmount', label: 'Turnover (NPR)' },
+          { key: 'totalQuantity', label: 'Volume' },
+          { key: 'tradeCount', label: 'Trades' },
+          { key: 'minRate', label: 'Min Rate' },
+          { key: 'maxRate', label: 'Max Rate' },
+          { key: 'pctChange', label: 'Change %' },
+        ],
+        ranking
+      )
+    }
+  }
+
   return (
     <div className="text-foreground p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <div>
             <h1 className="text-2xl font-bold">Symbol Analysis</h1>
             <p className="text-sm text-muted-foreground">Turnover, volume, and price change by stock symbol</p>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => trigger(undefined, { skipCache: true })}
-            disabled={loading}
-            className="gap-2 transition-transform hover:scale-105"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportCsv}
+              disabled={ranking.length === 0}
+              className="gap-2 transition-transform hover:scale-105"
+            >
+              <Download className="w-4 h-4" />
+              {selectedSymbol ? `Export ${selectedSymbol}` : 'Export CSV'}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => trigger(undefined, { skipCache: true })}
+              disabled={loading}
+              className="gap-2 transition-transform hover:scale-105"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
         </div>
 
         {error ? (

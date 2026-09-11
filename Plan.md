@@ -24,11 +24,11 @@ This document outlines the 6-phase improvement roadmap to turn NEPSE Floorsheet 
 ---
 
 ## 📌 Phase 3: 1-Click CSV Data Export
-- [ ] Create `frontend/utils/csvExport.ts` for clean CSV formatting and download triggers.
-- [ ] Add **Export CSV** button in Floorsheet Table (downloads filtered trades).
-- [ ] Add **Export CSV** button in Symbol Analysis (downloads ranking & trade history).
-- [ ] Add **Export CSV** button in Broker Analysis (downloads broker ranking & daily history).
-- [ ] Verify build and commit/push to `main`.
+- [x] Create `frontend/utils/csvExport.ts` for clean CSV formatting and download triggers.
+- [x] Add **Export CSV** button in Floorsheet Table (downloads filtered trades).
+- [x] Add **Export CSV** button in Symbol Analysis (downloads ranking & trade history).
+- [x] Add **Export CSV** button in Broker Analysis (downloads broker ranking & daily history).
+- [x] Verify build and commit/push to `main`.
 
 ---
 
