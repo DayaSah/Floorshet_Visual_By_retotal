@@ -1,7 +1,7 @@
 /** @jsxRuntime automatic */
 import { type ReactNode, lazy, Suspense, useState, useEffect } from 'react'
 import { NavLink, Routes, Route } from 'react-router-dom'
-import { Activity, Clock, FileSpreadsheet, Flame, LayoutGrid, Loader2, Network, ScatterChart, Search, Table2, Users } from 'lucide-react'
+import { Activity, Clock, FileSpreadsheet, Flame, Gamepad2, LayoutGrid, Loader2, Network, ScatterChart, Search, Table2, Users } from 'lucide-react'
 import { cn } from './lib/shadcn/utils'
 import { ThemeToggle } from './components/ThemeToggle'
 import { CommandPalette } from './components/CommandPalette'
@@ -18,6 +18,7 @@ const MarketRadar = lazy(() => import('./pages/MarketRadar'))
 const BrokerNetwork = lazy(() => import('./pages/BrokerNetwork'))
 const TimePatterns = lazy(() => import('./pages/TimePatterns'))
 const TradeSizeAnalysis = lazy(() => import('./pages/TradeSizeAnalysis'))
+const FunLounge = lazy(() => import('./pages/FunLounge'))
 
 function PageFallback() {
   return (
@@ -83,6 +84,7 @@ export default function App() {
             <NavTab to="/broker-network" icon={<Network className="w-4 h-4" />} label="Broker Network" />
             <NavTab to="/time-patterns" icon={<Clock className="w-4 h-4" />} label="Time Patterns" />
             <NavTab to="/trade-size" icon={<ScatterChart className="w-4 h-4" />} label="Trade Size" />
+            <NavTab to="/fun" icon={<Gamepad2 className="w-4 h-4 text-pink-400" />} label="Fun" />
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
@@ -113,6 +115,7 @@ export default function App() {
             <Route path="/broker-network" element={<BrokerNetwork />} />
             <Route path="/time-patterns" element={<TimePatterns />} />
             <Route path="/trade-size" element={<TradeSizeAnalysis />} />
+            <Route path="/fun" element={<FunLounge />} />
           </Routes>
         </Suspense>
       </div>

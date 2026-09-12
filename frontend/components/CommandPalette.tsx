@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Activity, Clock, FileSpreadsheet, Flame, LayoutGrid, Network, ScatterChart, Search, Table2, Users } from 'lucide-react'
+import { Activity, Clock, FileSpreadsheet, Flame, Gamepad2, LayoutGrid, Network, ScatterChart, Search, Table2, Users } from 'lucide-react'
 import { BROKER_DIRECTORY } from '../utils/brokerNames'
 
 interface PaletteItem {
@@ -42,6 +42,7 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: 
       { id: 'page-network', title: 'Broker Network', subtitle: 'Counterparty trading pairs & matrix', category: 'Pages', icon: Network, onSelect: () => navigate('/broker-network') },
       { id: 'page-time', title: 'Time Patterns', subtitle: 'Minute buckets & day-of-week trends', category: 'Pages', icon: Clock, onSelect: () => navigate('/time-patterns') },
       { id: 'page-trade-size', title: 'Trade Size', subtitle: 'Block deal analysis & size distribution', category: 'Pages', icon: ScatterChart, onSelect: () => navigate('/trade-size') },
+      { id: 'page-fun', title: 'Fun Lounge', subtitle: 'Mini-games, trivia, fortune wheel & soundboard', category: 'Pages', icon: Gamepad2, onSelect: () => navigate('/fun') },
     ]
 
     for (const page of pages) {
