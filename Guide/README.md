@@ -17,6 +17,7 @@ Welcome to the complete official guide library for the **NEPSE Floorsheet Visual
 | **Broker Network** (`/broker-network`) | 🕸️ | [**Broker Network Guide**](broker_network.md) | Inter-broker counterparty channels, top 20 bilateral trading pairs, and 10x10 counterparty intensity heatmap matrix. |
 | **Time Patterns** (`/time-patterns`) | ⏰ | [**Time Patterns Guide**](time_patterns.md) | Intraday 5-minute liquidity cycles (opening rush vs. power close), day-of-week volume seasonality (Sunday to Thursday), and execution timing tactics. |
 | **Trade Size** (`/trade-size`) | 📊 | [**Trade Size Guide**](trade_size.md) | 6-bracket trade size distribution, 80/20 Pareto analysis (retail noise vs. whale capital), and live mega block deals table (> Rs. 1M). |
+| **Fun Lounge** (`/fun`) | 🎮 | [**Fun Lounge Guide**](fun.md) | 60s Chart Trader arcade, NEPSE Magic 8-Ball, Lucky Stock Spin Wheel, Trader Persona Quiz, Chiya & Momo Converter, Trivia Blitz, and Market Soundboard. |
 
 ---
 

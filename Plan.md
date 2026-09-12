@@ -1,6 +1,6 @@
 # 🚀 NEPSE Floorsheet Visualizer — Enhancement Roadmap
 
-This document outlines the 7-phase improvement roadmap to turn NEPSE Floorsheet Visualizer into a high-performance, trader-grade analytical platform.
+This document outlines the 8-phase improvement roadmap to turn NEPSE Floorsheet Visualizer into a high-performance, trader-grade analytical platform.
 
 ---
 
@@ -65,5 +65,21 @@ This document outlines the 7-phase improvement roadmap to turn NEPSE Floorsheet 
 - [x] **Feature B — Estimated Broker Cost Basis, Breakeven & PnL Status**: Calculate volume-weighted broker entry prices against Latest Traded Price (LTP) with real-time PnL position status (`+X% In Profit 🟢` / `-X% Underwater 🔴`) in the Top 10 Broker Breakdown table.
 - [x] **Feature C — Smart Money Sentiment & Accumulation Index**: Build a 0–100 algorithmic score gauge with plain-English dynamic Institutional Footprint verdict and Buyer vs. Seller concentration progress bars.
 - [x] **Feature G — "Share Pro Card" Instant Snapshot Generator**: Add 1-click modal using `html-to-image` to generate branded, high-resolution social cards with direct clipboard copy (`navigator.clipboard.write`) and Retina PNG download.
-- [x] **Comprehensive Guide Library**: Create detailed beginner-to-pro guides for all 9 platform tabs in `Guide/` ([Table](Guide/table.md), [Overview](Guide/overview.md), [Symbols](Guide/symbols.md), [Script Analysis](Guide/scriptanalysis.md), [Brokers](Guide/brokers.md), [Market Radar](Guide/radar.md), [Broker Network](Guide/broker_network.md), [Time Patterns](Guide/time_patterns.md), [Trade Size](Guide/trade_size.md)), anchored by a central [Guides Hub](Guide/README.md).
+- [x] **Comprehensive Guide Library**: Create detailed beginner-to-pro guides for all 10 platform tabs in `Guide/` ([Table](Guide/table.md), [Overview](Guide/overview.md), [Symbols](Guide/symbols.md), [Script Analysis](Guide/scriptanalysis.md), [Brokers](Guide/brokers.md), [Market Radar](Guide/radar.md), [Broker Network](Guide/broker_network.md), [Time Patterns](Guide/time_patterns.md), [Trade Size](Guide/trade_size.md), [Fun Lounge](Guide/fun.md)), anchored by a central [Guides Hub](Guide/README.md).
+- [x] Verify build and commit/push to `main`.
+
+---
+
+## 🎮 Phase 8: Trader's Fun Lounge (Entertainment & Engagement Hub)
+- [x] **60-Second Chart Trader Arcade**: Build a live SVG price simulation mini-game with real-time portfolio tracking, market shock events (whale inflow / profit booking panic), tiered achievement titles, and localStorage high score persistence.
+- [x] **NEPSE Magic 8-Ball Oracle**: Create an interactive 3D-styled 8-ball with 20 authentic NEPSE-themed fortune responses, shake animation, and quick-prompt chips.
+- [x] **Lucky Stock Fortune Wheel**: Build a spinning SVG wheel with 10 real NEPSE stocks, smooth CSS rotation transitions, personalized horoscope readings, and direct Script Analysis deep-links.
+- [x] **"Which Trader Are You?" Persona Quiz**: Design a 4-question personality quiz mapping to 5 trader archetypes (Whale, Scalper, Guru, Chaser, Saint) with superpowers, fatal flaws, and broker habitat matches.
+- [x] **Chiya & Momo Profit Converter**: Convert portfolio gains/losses into relatable Nepali expenses (milk chiya, buff momo, petrol, WiFi, Pokhara trips) with preset amounts and real-time calculations.
+- [x] **NEPSE Trivia Blitz**: Build a 10-question multiple-choice quiz covering NEPSE history, regulations, slang, and market mechanics with detailed explanations and tiered title rewards.
+- [x] **Market Soundboard**: Synthesize 7 iconic market sound effects using pure Web Audio API (`OscillatorNode` + `GainNode`) — opening bell, upper circuit fanfare, sad trombone, ka-ching, whale splash, margin call alarm, and UI click.
+- [x] **Canvas Confetti Celebrations**: Implement a 90-particle confetti burst system on HTML5 Canvas for win events across all activities.
+- [x] **Sound Mute/Unmute Toggle**: Add global mute control with `localStorage` persistence across sessions.
+- [x] **App Integration**: Register `/fun` route in `App.tsx`, add `Gamepad2` nav tab, and include Fun Lounge in `CommandPalette.tsx` search.
+- [x] **Fun Lounge Guide**: Create comprehensive [Guide/fun.md](Guide/fun.md) covering all 6 activities with gameplay instructions, tables, and tips.
 - [x] Verify build and commit/push to `main`.

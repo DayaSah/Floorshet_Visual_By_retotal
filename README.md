@@ -27,6 +27,7 @@ A full-stack, production-ready analytics and visualization dashboard for Nepal S
 | **Broker Network** (`/broker-network`) | [**`Guide/broker_network.md`**](Guide/broker_network.md) | Counterparty channels, top 20 bilateral trading pairs, and decoding the 10x10 inter-broker turnover heatmap matrix. |
 | **Time Patterns** (`/time-patterns`) | [**`Guide/time_patterns.md`**](Guide/time_patterns.md) | Intraday 5-minute liquidity cycles (opening rush vs. power close), day-of-week volume seasonality (Sunday to Thursday), and execution timing tactics. |
 | **Trade Size** (`/trade-size`) | [**`Guide/trade_size.md`**](Guide/trade_size.md) | 6-bracket trade size distribution, 80/20 Pareto rule (retail noise vs. whale capital), and live mega block deals table (> Rs. 1M). |
+| **Fun Lounge** (`/fun`) | [**`Guide/fun.md`**](Guide/fun.md) | 60-Second Chart Trader arcade, NEPSE Magic 8-Ball, Lucky Stock Spin Wheel, Trader Persona Quiz, Chiya & Momo Converter, NEPSE Trivia Blitz, and Market Soundboard. |
 
 ---
 
@@ -138,7 +139,8 @@ CockroachDB Serverless charges based on Request Units (RUs), where full table sc
 │   ├── radar.md                           # Real-time Market Radar & Whale Tracker guide
 │   ├── broker_network.md                  # Inter-broker counterparty channels & 10x10 matrix guide
 │   ├── time_patterns.md                   # Intraday 5-min liquidity cycles & weekly seasonality guide
-│   └── trade_size.md                      # Trade size brackets & mega block deal (> 1M) guide
+│   ├── trade_size.md                      # Trade size brackets & mega block deal (> 1M) guide
+│   └── fun.md                             # Trader's Fun Lounge guide (6 interactive activities)
 ├── frontend/
 │   ├── index.html                         # Single Page Application HTML entry point
 │   ├── main.tsx                           # React 19 entry point with BrowserRouter & theme mount
@@ -173,13 +175,15 @@ CockroachDB Serverless charges based on Request Units (RUs), where full table sc
 │   │   ├── BrokerNetwork.tsx              # Route /broker-network: 10x10 inter-broker turnover matrix
 │   │   ├── MarketRadar.tsx                # Route /radar: Real-time whale transaction activity feed
 │   │   ├── TimePatterns.tsx               # Route /time-patterns: Intraday 5-min trade liquidity
-│   │   └── TradeSizeAnalysis.tsx          # Route /trade-size: Retail vs whale block deals
+│   │   ├── TradeSizeAnalysis.tsx          # Route /trade-size: Retail vs whale block deals
+│   │   └── FunLounge.tsx                  # Route /fun: 6 interactive arcade activities & soundboard
 │   ├── styles/
 │   │   └── effects.css                    # Ambient floating orb keyframe animations
 │   └── utils/
 │       ├── brokerNames.ts                 # NEPSE official directory mapping 101 registered brokers
 │       ├── chartColors.ts                 # Palette constants for Recharts
-│       └── format.ts                      # Number, currency (Rs.), date, and time formatters
+│       ├── format.ts                      # Number, currency (Rs.), date, and time formatters
+│       └── funSounds.ts                   # Web Audio API synthesized sound effects for Fun Lounge
 ├── .env.example                           # Sanitized environment variable template
 ├── .gitignore                             # Git exclusion list (protects .env, node_modules, dist)
 ├── package.json                           # Root workspace configuration with build & dev scripts
@@ -217,6 +221,8 @@ CockroachDB Serverless charges based on Request Units (RUs), where full table sc
 - **[`frontend/pages/MarketRadar.tsx`](frontend/pages/MarketRadar.tsx)**: Real-time market radar feed (`/radar`) highlighting high-frequency whale transactions (> Rs. 1M) and sudden volume spikes across the trading day.
 - **[`frontend/pages/TimePatterns.tsx`](frontend/pages/TimePatterns.tsx)**: Visualizes trade distribution across the trading day (5-min intervals) and days of the week.
 - **[`frontend/pages/TradeSizeAnalysis.tsx`](frontend/pages/TradeSizeAnalysis.tsx)**: Displays trade size distribution (pie and bar charts) and a table of large block deals (> Rs. 1M).
+- **[`frontend/pages/FunLounge.tsx`](frontend/pages/FunLounge.tsx)**: The **Trader's Fun Lounge** (`/fun`) — 1,460+ line entertainment hub with 6 interactive activities: 60-Second Chart Trader arcade mini-game with live SVG chart, NEPSE Magic 8-Ball oracle (20 fortunes), Lucky Stock Fortune Wheel (10 NEPSE stocks with horoscopes), "Which Trader Are You?" personality quiz (5 personas), Chiya & Momo real-life profit converter, NEPSE Trivia Blitz (10 questions), and a Market Soundboard with 7 synthesized Web Audio effects.
+- **[`frontend/utils/funSounds.ts`](frontend/utils/funSounds.ts)**: Pure Web Audio API synthesized sound effects (opening bell, upper circuit fanfare, sad trombone, ka-ching cash register, woodblock click, whale splash, margin call alarm) — zero external audio file dependencies.
 
 ### 3. UI Components, Hooks & Utilities
 - **[`frontend/components/GlassCard.tsx`](frontend/components/GlassCard.tsx)**: Translucent glassmorphism container using `backdrop-blur-xl`, subtle border highlighting, and hover elevation.
@@ -227,7 +233,7 @@ CockroachDB Serverless charges based on Request Units (RUs), where full table sc
 - **[`frontend/utils/brokerNames.ts`](frontend/utils/brokerNames.ts)**: Complete mapping of all **101 official NEPSE registered stock brokers** (e.g., #58 Naasa Securities, #45 Imperial Securities), converting raw numbers to human-readable names.
 - **[`frontend/utils/format.ts`](frontend/utils/format.ts)**: Formatting utilities for numbers, currencies (`Rs.`), dates, and intraday minute intervals.
 - **[`frontend/utils/chartColors.ts`](frontend/utils/chartColors.ts)**: Centralized Recharts color constants matching theme CSS variables.
-- **[`Guide/`](Guide/README.md)**: Exhaustive beginner-to-pro guide library covering all 9 application tabs ([Table](Guide/table.md), [Overview](Guide/overview.md), [Symbols](Guide/symbols.md), [Script Analysis](Guide/scriptanalysis.md), [Brokers](Guide/brokers.md), [Market Radar](Guide/radar.md), [Broker Network](Guide/broker_network.md), [Time Patterns](Guide/time_patterns.md), [Trade Size](Guide/trade_size.md)), complete with real-world case studies, smart money interpretation matrices, and FAQs.
+- **[`Guide/`](Guide/README.md)**: Exhaustive beginner-to-pro guide library covering all **10 application tabs** ([Table](Guide/table.md), [Overview](Guide/overview.md), [Symbols](Guide/symbols.md), [Script Analysis](Guide/scriptanalysis.md), [Brokers](Guide/brokers.md), [Market Radar](Guide/radar.md), [Broker Network](Guide/broker_network.md), [Time Patterns](Guide/time_patterns.md), [Trade Size](Guide/trade_size.md), [Fun Lounge](Guide/fun.md)), complete with real-world case studies, smart money interpretation matrices, and FAQs.
 
 ---
 
