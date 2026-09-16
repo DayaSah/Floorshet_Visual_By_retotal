@@ -1,6 +1,6 @@
 # 🚀 NEPSE Floorsheet Visualizer — Enhancement Roadmap
 
-This document outlines the 8-phase improvement roadmap to turn NEPSE Floorsheet Visualizer into a high-performance, trader-grade analytical platform.
+This document outlines the 9-phase improvement roadmap to turn NEPSE Floorsheet Visualizer into a high-performance, trader-grade analytical platform.
 
 ---
 
@@ -83,3 +83,15 @@ This document outlines the 8-phase improvement roadmap to turn NEPSE Floorsheet 
 - [x] **App Integration**: Register `/fun` route in `App.tsx`, add `Gamepad2` nav tab, and include Fun Lounge in `CommandPalette.tsx` search.
 - [x] **Fun Lounge Guide**: Create comprehensive [Guide/fun.md](Guide/fun.md) covering all 6 activities with gameplay instructions, tables, and tips.
 - [x] Verify build and commit/push to `main`.
+
+---
+
+## 📅 Phase 9: Global Date Range Engine & Mobile App Optimization (PWA)
+- [x] **Global Date Range Architecture**: Build `DateRangeContext.tsx` and sticky `DateRangeBar.tsx` providing platform-wide date synchronizations across all 8 data tabs.
+- [x] **Smart Latest-Day Anchor & Presets**: Build `/api/floorsheet/latest-date` to query `MAX(trade_time::date)`; implement 1D (exact latest trading session), 3D, 7D, 15D (default), 30D, 90D, and All Time presets + custom pickers with auto-bounds.
+- [x] **Cache-Aware DBMS Queries**: Update all 8 backend API endpoints (`raw`, `stats`, `symbols`, `brokers`, `radar`, `network`, `time-patterns`, `trade-size`) with date-aware SQL WHERE clauses and cache key suffixes to prevent redundant CockroachDB RU consumption.
+- [x] **Homepage Flagship Transformation**: Establish Script Analysis (`/`) as the premier default landing page; relocate Raw Floorsheet Table to `/table`.
+- [x] **PWA & Mobile Bottom Dock Polish**: 7-tab mobile dock with custom icon accents, offline caching service worker, manifest app shortcuts, and install prompt banner with persistent dismissal.
+- [x] **Exhaustive Documentation & Mathematical Index Spec**: Add mathematical formulation and algorithmic component breakdown for the Smart Money Index in `README.md` and `Guide/scriptanalysis.md`.
+- [x] Verify build and commit/push to `main`.
+

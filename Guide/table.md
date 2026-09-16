@@ -22,7 +22,7 @@
 
 ## 1. What is the Floorsheet Table and Why Does It Matter?
 
-While summary charts show where the market has been, the **Floorsheet Table** (`/`) reveals the market in motion. Every executed trade generates a contract showing:
+While summary charts show where the market has been, the **Floorsheet Table** (`/table`) reveals the market in motion. Every executed trade generates a contract showing:
 - **Who bought** (Broker ID)
 - **Who sold** (Broker ID)
 - **What stock** (Symbol)
@@ -73,7 +73,7 @@ Located directly above the table inside a glassmorphism container:
 
 1. **Symbol Filter**: Type any stock ticker (e.g., `SHIVM`). The table immediately filters to that symbol without reloading the page.
 2. **Broker ID Filter**: Enter a broker number (e.g., `58`). Matches any trade where broker #58 was either the **buyer** OR the **seller**.
-3. **From Date & To Date**: Filter historical trades to a specific date range.
+3. **From Date & To Date**: Filter historical trades to a specific date range. *(Note: You can also use the sticky **Global Date Range Bar** at the top of the screen (`1D`, `3D`, `7D`, `15D` default, `30D`, `90D`, `All Time`, Custom) to synchronize dates across all platform tabs!)*
 
 ---
 

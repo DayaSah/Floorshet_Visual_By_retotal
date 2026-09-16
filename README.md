@@ -18,16 +18,102 @@ A full-stack, production-ready analytics and visualization dashboard for Nepal S
 
 | Tab & Route | Guide Document | What You'll Learn |
 | :--- | :--- | :--- |
-| **Floorsheet Table** (`/`) | [**`Guide/table.md`**](Guide/table.md) | How to filter 2.6M+ transactions, isolate whale orders (≥ 10L), detect internal crossings, and export custom CSV datasets. |
+| **Script Analysis** (`/` & `/script-analysis`) | [**`Guide/scriptanalysis.md`**](Guide/scriptanalysis.md) | **Our Flagship Platform (Default Homepage)**: Smart Money Index (0–100 score & AI verdict), daywise broker holding trajectories, dual-axis price overlay, 4 presets (all 96 brokers), broker cost basis / PnL, and "Share Pro Card" branded PNG export. |
+| **Floorsheet Table** (`/table`) | [**`Guide/table.md`**](Guide/table.md) | How to filter 2.6M+ transactions, isolate whale orders (≥ 10L), detect internal crossings, and export custom CSV datasets. |
 | **Market Overview** (`/overview`) | [**`Guide/overview.md`**](Guide/overview.md) | Tracking macro turnover growth, market leadership bars, daily trade velocity, and identifying bull vs. bear market regimes. |
 | **Symbol Analysis** (`/symbols`) | [**`Guide/symbols.md`**](Guide/symbols.md) | Screening top gainers/losers, price/volume confirmation rules, and uncovering broker smart flow for any stock. |
-| **Script Analysis** (`/script-analysis`) | [**`Guide/scriptanalysis.md`**](Guide/scriptanalysis.md) | **Our Flagship Platform**: Smart Money Index (0–100 score & AI verdict), daywise broker holding trajectories, dual-axis price overlay, 4 presets (all 96 brokers), broker cost basis / PnL, and "Share Pro Card" branded PNG export. |
 | **Broker Analysis** (`/brokers`) | [**`Guide/brokers.md`**](Guide/brokers.md) | All 101 NEPSE broker profiles, accumulation vs. distribution rankings, daily inflow/outflow charts, and top stock portfolio holdings. |
 | **Market Radar** (`/radar`) | [**`Guide/radar.md`**](Guide/radar.md) | Live whale transaction feed (> Rs. 10 Lakhs), in-house broker crossings tracker, institutional concentration charts, and custom thresholds. |
 | **Broker Network** (`/broker-network`) | [**`Guide/broker_network.md`**](Guide/broker_network.md) | Counterparty channels, top 20 bilateral trading pairs, and decoding the 10x10 inter-broker turnover heatmap matrix. |
 | **Time Patterns** (`/time-patterns`) | [**`Guide/time_patterns.md`**](Guide/time_patterns.md) | Intraday 5-minute liquidity cycles (opening rush vs. power close), day-of-week volume seasonality (Sunday to Thursday), and execution timing tactics. |
 | **Trade Size** (`/trade-size`) | [**`Guide/trade_size.md`**](Guide/trade_size.md) | 6-bracket trade size distribution, 80/20 Pareto rule (retail noise vs. whale capital), and live mega block deals table (> Rs. 1M). |
 | **Fun Lounge** (`/fun`) | [**`Guide/fun.md`**](Guide/fun.md) | 60-Second Chart Trader arcade, NEPSE Magic 8-Ball, Lucky Stock Spin Wheel, Trader Persona Quiz, Chiya & Momo Converter, NEPSE Trivia Blitz, and Market Soundboard. |
+
+---
+
+## 🧠 How the Smart Money Sentiment & Accumulation Index is Calculated
+
+Our flagship **Script Analysis** platform incorporates a quantitative, algorithmic **Smart Money Accumulation Index (0–100 Score)**. Rather than relying on lagging indicators like RSI or MACD, this index inspects raw floorsheet microstructure across all ~96 trading brokerages to answer one critical question:
+
+> **Is smart institutional money quietly absorbing shares, or are they distributing blocks onto unsuspecting retail buyers?**
+
+```
++----------------------------------------------------------------------------------------------------+
+|                               SMART MONEY ACCUMULATION ENGINE                                      |
+|                                                                                                    |
+|  [ Pillar 1: Concentration Delta ]   [ Pillar 2: Net Absorption ]   [ Pillar 3: Trend Momentum ]  |
+|            (0 to 40 Pts)                     (0 to 35 Pts)                  (0 to 25 Pts)          |
+|    Buyer Conc. vs Seller Conc.          Top 5 Net Inflow Ratio          Lead Buyer Trajectory      |
+|                  \                            |                            /                       |
+|                   +---------------------------+---------------------------+                        |
+|                                               |                                                    |
+|                                     ▼ Composite Score ▼                                            |
+|                                     0 ───────────► 100                                            |
+|                   🔴 Distribution      🟡 Neutral        🟢 Accumulation                           |
++----------------------------------------------------------------------------------------------------+
+```
+
+### 1. The Three Quantitative Pillars
+
+The index computes three mathematical components for any selected symbol over any selected time window:
+
+#### Pillar 1: Institutional Concentration Delta ($0$ to $40$ Points)
+Measures asymmetric order capture (Pareto dominance). Retail trades are scattered across dozens of brokerages, whereas institutional accumulation is concentrated in a tight cluster of lead brokers.
+
+$$\text{Buyer Concentration (\%)} = \min\left(100, \frac{\sum_{i=1}^5 \text{BuyAmount}_i}{\text{Total Buy Turnover}} \times 100\right)$$
+
+$$\text{Seller Concentration (\%)} = \min\left(100, \frac{\sum_{i=1}^5 \text{SellAmount}_i}{\text{Total Sell Turnover}} \times 100\right)$$
+
+$$\Delta_{\text{conc}} = \text{Buyer Concentration} - \text{Seller Concentration}$$
+
+$$\text{Points}_{\text{conc}} = \min(40, \max(0, 20 + \Delta_{\text{conc}} \times 0.8))$$
+
+- **Base**: $20$ points (equal buyer and seller concentration).
+- **Bullish Skew**: If the Top 5 buyers capture 75% of buy volume while selling is dispersed across 40+ brokerages ($\Delta_{\text{conc}} > 0$), points scale up to **$40$**.
+- **Bearish Skew**: If sellers are concentrated while buyers are scattered retail fragments, points drop towards **$0$**.
+
+#### Pillar 2: Net Capital Absorption Balance ($0$ to $35$ Points)
+Measures the net monetary tug-of-war between the Top 5 net buyers and Top 5 net sellers:
+
+$$\text{Net Ratio} = \frac{\text{Top 5 Net Inflow} - \text{Top 5 Net Outflow}}{\text{Top 5 Net Inflow} + \text{Top 5 Net Outflow}}$$
+
+$$\text{Points}_{\text{abs}} = \min(35, \max(0, 17.5 + \text{Net Ratio} \times 17.5))$$
+
+- **Base**: $17.5$ points (balanced net inflow and outflow).
+- When net buyer accumulation completely dwarfs seller offloading ($\text{Net Ratio} \to +1$), this component awards the maximum **$35$** points.
+
+#### Pillar 3: Trajectory Trend Momentum ($0$ to $25$ Points)
+Evaluates whether the lead institutional accumulator (`TopBuyer[0]`) is consistently adding to their position day-by-day using cumulative trajectory curves across the trading session:
+
+$$\text{Points}_{\text{mom}} = \begin{cases} 
+25 & \text{if } \text{CumNet}_{\text{latest}} > \text{CumNet}_{\text{start}} \text{ (Expanding Holdings)} \\
+5 & \text{if } \text{CumNet}_{\text{latest}} < \text{CumNet}_{\text{start}} \text{ (Contracting Holdings)} \\
+12.5 & \text{if neutral or insufficient daily data points}
+\end{cases}$$
+
+---
+
+### 2. Final Score Formulation & Classification Tiers
+
+All three components are aggregated and clamped to an integer scale between **5 and 100**:
+
+$$\text{Smart Money Index} = \text{round}\Big(\min\big(100, \max(5, \text{Points}_{\text{conc}} + \text{Points}_{\text{abs}} + \text{Points}_{\text{mom}})\big)\Big)$$
+
+| Score Range | Classification Verdict | Institutional Footprint Reality | Badge Tone |
+| :---: | :--- | :--- | :---: |
+| **75 – 100** | **Strong Institutional Accumulation** 🟢 | Aggressive absorption. Lead buyers dominate turnover, holding lines slope steeply upward, supply is being systematically locked away. | Emerald |
+| **60 – 74** | **Moderate Accumulation** 🔵 | Steady institutional buying. Net capital inflows positive with patient, methodical accumulation. | Cyan |
+| **45 – 59** | **Neutral / Churning** 🟡 | Two-sided liquidity. Active turnover with balanced counterparty flow; no clear directional dominance. | Amber |
+| **30 – 44** | **Moderate Distribution** 🟠 | Net distribution underway. Institutional desks are trimming holdings into retail buy liquidity. | Orange |
+| **5 – 29** | **Heavy Institutional Distribution** 🔴 | Severe liquidation. Concentrated selling blocks overwhelm buying demand; institutional capital flight. | Rose |
+
+---
+
+### 3. Automated Plain-English Narrative Generator
+
+In addition to the numeric gauge, the algorithmic engine dynamically generates an executive textual summary identifying the exact brokerages involved, their capital commitment, and market implications:
+- **Example Bullish Verdict**: *"Top buyers led by #58 (Naasa Securities) and #45 (Imperial Securities) accumulated a combined Rs. 2.45 Crore, capturing 78% of total buy orders while selling was distributed across 38 brokerages. Smart money is actively absorbing circulating supply."*
+- **Example Bearish Verdict**: *"Selling pressure was concentrated in #28 (Asian Securities) offloading Rs. 1.82 Crore, outstripping buyer demand across the period. Caution advised as major institutional accounts are reducing exposure."*
 
 ---
 
@@ -119,30 +205,31 @@ CockroachDB Serverless charges based on Request Units (RUs), where full table sc
 ```
 .
 ├── api/
-│   ├── _db.ts                             # Database connection pool & in-memory caching helper (prefixed with _ to exclude from Vercel function endpoints)
+│   ├── _db.ts                             # Database connection pool, parseDateRange helper & in-memory caching
 │   └── floorsheet/
 │       ├── brokers.ts                     # GET /api/floorsheet/brokers (rankings & broker daily history)
+│       ├── latest-date.ts                 # GET /api/floorsheet/latest-date (returns MAX trade date for date range anchoring)
 │       ├── network.ts                     # GET /api/floorsheet/network (broker pairs & 10x10 matrix)
-│       ├── raw.ts                         # GET /api/floorsheet/raw (latest transactions with limit)
-│       ├── script-analysis.ts             # GET /api/floorsheet/script-analysis (symbol broker holdings, daywise trajectories & prices)
+│       ├── raw.ts                         # GET /api/floorsheet/raw (latest transactions with pagination & date filters)
+│       ├── script-analysis.ts             # GET /api/floorsheet/script-analysis (symbol broker holdings, trajectories & prices)
 │       ├── stats.ts                       # GET /api/floorsheet/stats (daily volume & top 10 symbols)
 │       ├── symbols.ts                     # GET /api/floorsheet/symbols (symbol ranking & price trades)
 │       ├── time-patterns.ts               # GET /api/floorsheet/time-patterns (5-min buckets & DOW)
 │       └── trade-size.ts                  # GET /api/floorsheet/trade-size (brackets & block deals)
 ├── Guide/
 │   ├── README.md                          # Master documentation index and trader workflow hub
-│   ├── table.md                           # Floorsheet raw transactions table guide
-│   ├── overview.md                        # Market overview macro KPIs & turnover charts guide
-│   ├── symbols.md                         # Symbol screener, gainers/losers & volume chart guide
-│   ├── scriptanalysis.md                  # Flagship Script Analysis & Smart Money Index guide
-│   ├── brokers.md                         # Broker profiles, accumulation/distribution & portfolio guide
-│   ├── radar.md                           # Real-time Market Radar & Whale Tracker guide
-│   ├── broker_network.md                  # Inter-broker counterparty channels & 10x10 matrix guide
-│   ├── time_patterns.md                   # Intraday 5-min liquidity cycles & weekly seasonality guide
-│   ├── trade_size.md                      # Trade size brackets & mega block deal (> 1M) guide
-│   └── fun.md                             # Trader's Fun Lounge guide (6 interactive activities)
+│   ├── table.md                           # Floorsheet raw transactions table guide (/table)
+│   ├── overview.md                        # Market overview macro KPIs & turnover charts guide (/overview)
+│   ├── symbols.md                         # Symbol screener, gainers/losers & volume chart guide (/symbols)
+│   ├── scriptanalysis.md                  # Flagship Script Analysis & Smart Money Index guide (/)
+│   ├── brokers.md                         # Broker profiles, accumulation/distribution & portfolio guide (/brokers)
+│   ├── radar.md                           # Real-time Market Radar & Whale Tracker guide (/radar)
+│   ├── broker_network.md                  # Inter-broker counterparty channels & 10x10 matrix guide (/broker-network)
+│   ├── time_patterns.md                   # Intraday 5-min liquidity cycles & weekly seasonality guide (/time-patterns)
+│   ├── trade_size.md                      # Trade size brackets & mega block deal (> 1M) guide (/trade-size)
+│   └── fun.md                             # Trader's Fun Lounge guide (6 interactive activities) (/fun)
 ├── frontend/
-│   ├── index.html                         # Single Page Application HTML entry point
+│   ├── index.html                         # Single Page Application HTML entry point & PWA meta tags
 │   ├── main.tsx                           # React 19 entry point with BrowserRouter & theme mount
 │   ├── App.tsx                            # Primary navigation, glassmorphism layout & routing
 │   ├── package.json                       # Frontend dependencies (Radix UI, Recharts, TanStack, html-to-image)
@@ -152,10 +239,14 @@ CockroachDB Serverless charges based on Request Units (RUs), where full table sc
 │   ├── tsconfig.json                      # TypeScript configuration
 │   ├── theme.css                          # CSS variables for light/dark mode design system
 │   ├── components/
+│   │   ├── DateRangeBar.tsx               # Sticky date range toolbar (1D, 3D, 7D, 15D, 30D, 90D, All, Custom)
+│   │   ├── MobileBottomNav.tsx            # 7-tab mobile bottom dock with PWA install prompt banner
 │   │   ├── GlassCard.tsx                  # Frosted-glass container card with backdrop blur
 │   │   ├── KpiCard.tsx                    # Key Performance Indicator card with status tone
 │   │   ├── SignBadge.tsx                  # Positive/negative trend pill badge
 │   │   └── CommandPalette.tsx             # Global search & navigation palette (Cmd+K / Ctrl+K)
+│   ├── contexts/
+│   │   └── DateRangeContext.tsx           # Global React Context synchronizing date filters across all tabs
 │   ├── hooks/
 │   │   └── backend/
 │   │       └── floorsheet.ts              # Type-safe client hooks for all API endpoints
@@ -167,8 +258,8 @@ CockroachDB Serverless charges based on Request Units (RUs), where full table sc
 │   │       ├── table.tsx                  # Data table primitive components
 │   │       └── utils.ts                   # Class name merger helper (clsx + twMerge)
 │   ├── pages/
-│   │   ├── ScriptAnalysis.tsx             # Route /script-analysis: Flagship smart money accumulation, trajectories & presets
-│   │   ├── Floorsheet.tsx                 # Route /: Searchable & sortable transactions table
+│   │   ├── ScriptAnalysis.tsx             # Route / & /script-analysis: Flagship smart money accumulation (Default Homepage)
+│   │   ├── Floorsheet.tsx                 # Route /table: Searchable & sortable raw transactions table
 │   │   ├── FloorsheetVisualization.tsx    # Route /overview: Market overview KPI & volume charts
 │   │   ├── SymbolAnalysis.tsx             # Route /symbols: Gainers, losers & symbol drilldowns
 │   │   ├── BrokerAnalysis.tsx             # Route /brokers: Broker accumulation vs distribution
@@ -201,19 +292,20 @@ CockroachDB Serverless charges based on Request Units (RUs), where full table sc
 - **[`api/_db.ts`](api/_db.ts)**: Configures the PostgreSQL/CockroachDB connection pool using `pg.Pool`. Implements `getCachedOrFetch<T>` for in-memory caching with configurable TTL and `setCacheHeaders` for Vercel Edge CDN headers. Prefixed with an underscore (`_`) so Vercel ignores it as an API route and treats it strictly as an internal module.
 - **[`dev-server.ts`](dev-server.ts)**: Node.js HTTP server running on port `3001` for local development, dispatching requests to `/api/floorsheet/*` handlers and injecting mock Vercel request/response objects.
 - **[`api/floorsheet/raw.ts`](api/floorsheet/raw.ts)**: Handler for `/api/floorsheet/raw`. Returns the latest floorsheet transactions using the `idx_trade_time` index with a capped limit (`500` default, max `1000`).
-- **[`api/floorsheet/stats.ts`](api/floorsheet/stats.ts)**: Handler for `/api/floorsheet/stats`. Groups trading volume by day and calculates top 10 traded stocks by turnover.
+- **[`api/floorsheet/latest-date.ts`](api/floorsheet/latest-date.ts)**: Handler for `/api/floorsheet/latest-date`. Queries `MAX(trade_time::date)` with 1-hour in-memory cache to dynamically anchor the global date range engine to the latest available trading day in the database.
+- **[`api/floorsheet/stats.ts`](api/floorsheet/stats.ts)**: Handler for `/api/floorsheet/stats`. Groups trading volume by day and calculates top 10 traded stocks by turnover, with date range filtering.
 - **[`api/floorsheet/symbols.ts`](api/floorsheet/symbols.ts)**: Handler for `/api/floorsheet/symbols`. Computes min/max/first/last prices, turnover, and percentage price changes for symbols. If a `?symbol=XYZ` parameter is provided, returns its trade timeline.
 - **[`api/floorsheet/brokers.ts`](api/floorsheet/brokers.ts)**: Handler for `/api/floorsheet/brokers`. Uses CTEs to compute buy vs. sell turnover, net accumulation, and returns daily broker volumes when `?broker=N` is requested.
 - **[`api/floorsheet/network.ts`](api/floorsheet/network.ts)**: Handler for `/api/floorsheet/network`. Finds top 20 counterparty pairs and calculates a 10x10 matrix of trades between the top 10 brokers.
 - **[`api/floorsheet/script-analysis.ts`](api/floorsheet/script-analysis.ts)**: Handler for `/api/floorsheet/script-analysis`. Aggregates symbol-specific broker accumulation/distribution, cumulative daywise trajectories for all ~96 brokers, daily close rates, VWAP, and broker average buy/sell cost basis over custom or preset date windows.
-- **[`api/floorsheet/time-patterns.ts`](api/floorsheet/time-patterns.ts)**: Handler for `/api/floorsheet/time-patterns`. Aggregates trades into 5-minute intraday buckets and Day-of-Week buckets.
-- **[`api/floorsheet/trade-size.ts`](api/floorsheet/trade-size.ts)**: Handler for `/api/floorsheet/trade-size`. Categorizes transactions into 6 size buckets and retrieves the top 25 block deals (> Rs. 1M).
+- **[`api/floorsheet/time-patterns.ts`](api/floorsheet/time-patterns.ts)**: Handler for `/api/floorsheet/time-patterns`. Aggregates trades into 5-minute intraday buckets and Day-of-Week buckets with date range filtering.
+- **[`api/floorsheet/trade-size.ts`](api/floorsheet/trade-size.ts)**: Handler for `/api/floorsheet/trade-size`. Categorizes transactions into 6 size buckets and retrieves the top 25 block deals (> Rs. 1M) within the selected date range.
 
 ### 2. Frontend Core & Pages (`frontend/`)
-- **[`frontend/App.tsx`](frontend/App.tsx)**: Root application component. Renders the sticky navigation bar, floating glassmorphism ambient background, and registers client-side routes.
+- **[`frontend/App.tsx`](frontend/App.tsx)**: Root application component. Renders the sticky navigation bar, floating glassmorphism ambient background, global DateRangeProvider wrap, and registers client-side routes.
 - **[`frontend/main.tsx`](frontend/main.tsx)**: React 19 bootstrap entry point mounting the app into `#root` with `BrowserRouter`.
-- **[`frontend/pages/ScriptAnalysis.tsx`](frontend/pages/ScriptAnalysis.tsx)**: Flagship smart money tracker (`/script-analysis`). Features the Smart Money Index (0-100 score & AI verdict), daywise broker holding trajectories with dual-axis price overlay, 4 quick presets (including all 96 brokers), broker cost basis & real-time PnL status, and the "Share Pro Card" branded PNG exporter.
-- **[`frontend/pages/Floorsheet.tsx`](frontend/pages/Floorsheet.tsx)**: Interactive table page powered by `@tanstack/react-table`. Supports client-side sorting, pagination, symbol filtering, broker filtering, and date range filtering.
+- **[`frontend/pages/ScriptAnalysis.tsx`](frontend/pages/ScriptAnalysis.tsx)**: **Flagship Default Homepage** (`/` and `/script-analysis`). Features the Smart Money Index (0–100 score & AI verdict), daywise broker holding trajectories with dual-axis price overlay, 4 quick presets (including all 96 brokers), broker cost basis & real-time PnL status, and the "Share Pro Card" branded PNG export.
+- **[`frontend/pages/Floorsheet.tsx`](frontend/pages/Floorsheet.tsx)**: Interactive table page (`/table`) powered by `@tanstack/react-table`. Supports client-side sorting, pagination, symbol filtering, broker filtering, and date range filtering across 2.62M+ records.
 - **[`frontend/pages/FloorsheetVisualization.tsx`](frontend/pages/FloorsheetVisualization.tsx)**: Market overview page featuring turnover KPI cards, daily volume area charts, and top symbol bar charts.
 - **[`frontend/pages/SymbolAnalysis.tsx`](frontend/pages/SymbolAnalysis.tsx)**: Symbol analysis page displaying top gainers, top losers, symbol rankings, and symbol-specific intraday price chart.
 - **[`frontend/pages/BrokerAnalysis.tsx`](frontend/pages/BrokerAnalysis.tsx)**: Broker page displaying net accumulation vs. distribution rankings and broker daily buy/sell bar charts.
@@ -224,7 +316,10 @@ CockroachDB Serverless charges based on Request Units (RUs), where full table sc
 - **[`frontend/pages/FunLounge.tsx`](frontend/pages/FunLounge.tsx)**: The **Trader's Fun Lounge** (`/fun`) — 1,460+ line entertainment hub with 6 interactive activities: 60-Second Chart Trader arcade mini-game with live SVG chart, NEPSE Magic 8-Ball oracle (20 fortunes), Lucky Stock Fortune Wheel (10 NEPSE stocks with horoscopes), "Which Trader Are You?" personality quiz (5 personas), Chiya & Momo real-life profit converter, NEPSE Trivia Blitz (10 questions), and a Market Soundboard with 7 synthesized Web Audio effects.
 - **[`frontend/utils/funSounds.ts`](frontend/utils/funSounds.ts)**: Pure Web Audio API synthesized sound effects (opening bell, upper circuit fanfare, sad trombone, ka-ching cash register, woodblock click, whale splash, margin call alarm) — zero external audio file dependencies.
 
-### 3. UI Components, Hooks & Utilities
+### 3. UI Components, Contexts & Utilities
+- **[`frontend/contexts/DateRangeContext.tsx`](frontend/contexts/DateRangeContext.tsx)**: Global React Context providing synchronous date boundaries (`startDate`, `endDate`, `rangeLabel`, `latestDate`) across all 8 data tabs. Automatically anchors presets to the real latest market date.
+- **[`frontend/components/DateRangeBar.tsx`](frontend/components/DateRangeBar.tsx)**: Sticky global date filter toolbar with `1D` (exact latest market session), `3D`, `7D`, `15D` (default), `30D`, `90D`, `All Time` presets and custom date pickers.
+- **[`frontend/components/MobileBottomNav.tsx`](frontend/components/MobileBottomNav.tsx)**: 7-tab mobile bottom dock (`Script`, `Table`, `Overview`, `Radar`, `Symbols`, `Brokers`, `Fun`) with active indicators and dismissible PWA install prompt banner.
 - **[`frontend/components/GlassCard.tsx`](frontend/components/GlassCard.tsx)**: Translucent glassmorphism container using `backdrop-blur-xl`, subtle border highlighting, and hover elevation.
 - **[`frontend/components/KpiCard.tsx`](frontend/components/KpiCard.tsx)**: Metric card displaying value, icon, hint, and colored border status (`positive`, `negative`, `info`, `neutral`).
 - **[`frontend/components/SignBadge.tsx`](frontend/components/SignBadge.tsx)**: Pill badge displaying trend arrows and success/destructive colors based on numeric sign.

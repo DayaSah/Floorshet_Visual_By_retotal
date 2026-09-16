@@ -8,10 +8,10 @@ Welcome to the complete official guide library for the **NEPSE Floorsheet Visual
 
 | Tab & Route | Icon | Guide Link | Focus & Highlights |
 | :--- | :---: | :--- | :--- |
-| **Floorsheet Table** (`/`) | 📑 | [**Floorsheet Table Guide**](table.md) | Raw transactions stream (2.6M+ records), multi-attribute filtering, whale isolation (≥ 10L), internal broker crossings, pagination, and CSV export. |
+| **Script Analysis** (`/` & `/script-analysis`) | ⚡ | [**Script Analysis Flagship Guide**](scriptanalysis.md) | **Our Flagship Platform (Default Homepage)**: Smart Money Index (0–100 score & AI verdict), daywise broker holding trajectories, dual-axis price overlay, 4 presets (all 96 brokers), broker cost basis / PnL, and "Share Pro Card" branded PNG export. |
+| **Floorsheet Table** (`/table`) | 📑 | [**Floorsheet Table Guide**](table.md) | Raw transactions stream (2.6M+ records), multi-attribute filtering, whale isolation (≥ 10L), internal broker crossings, pagination, and CSV export. |
 | **Market Overview** (`/overview`) | 🌐 | [**Market Overview Guide**](overview.md) | Macro turnover area chart, market leadership bar chart, daily trade velocity, and aggregate market regime identification. |
 | **Symbol Analysis** (`/symbols`) | 📈 | [**Symbol Analysis Guide**](symbols.md) | Top gainers & losers screening, dual price/volume chart, volume-price confirmation, and quick broker smart flow list. |
-| **Script Analysis** (`/script-analysis`) | ⚡ | [**Script Analysis Flagship Guide**](scriptanalysis.md) | **Our Flagship Platform**: Smart Money Index (0–100 score & AI verdict), daywise broker holding trajectories, dual-axis price overlay, 4 presets (all 96 brokers), broker cost basis / PnL, and "Share Pro Card" branded PNG exporter. |
 | **Broker Analysis** (`/brokers`) | 👥 | [**Broker Analysis Guide**](brokers.md) | All 101 NEPSE broker profiles, accumulation vs. distribution rankings, daily inflow/outflow charts, and top stock portfolio holdings. |
 | **Market Radar** (`/radar`) | 🚨 | [**Market Radar Guide**](radar.md) | Real-time whale transaction feed (> Rs. 10 Lakhs), in-house internal crossings tracker, institutional concentration charts, and customizable threshold filters. |
 | **Broker Network** (`/broker-network`) | 🕸️ | [**Broker Network Guide**](broker_network.md) | Inter-broker counterparty channels, top 20 bilateral trading pairs, and 10x10 counterparty intensity heatmap matrix. |
@@ -35,12 +35,12 @@ For maximum analytical efficiency, follow this 4-step daily routine:
         Screen Top Gainers and watch for mega block deals (> 10 Lakhs).
 
 [ Step 3: Deep Institutional Investigation ]
-    └── Script Analysis (/script-analysis)
+    └── Script Analysis (/ or /script-analysis)
         Inspect the Smart Money Index (0-100), check if price and holding lines diverge,
         and verify broker breakeven cost basis and PnL status.
 
 [ Step 4: Validate Counterparties & Execute ]
-    └── Broker Analysis (/brokers) & Floorsheet Table (/)
+    └── Broker Analysis (/brokers) & Floorsheet Table (/table)
         Confirm if lead buyers are absorbing shares and set your limit entry orders.
 ```
 
@@ -48,9 +48,10 @@ For maximum analytical efficiency, follow this 4-step daily routine:
 
 ## ⌨️ Platform-Wide Shortcuts & Tips
 
+- **📅 Sticky Global Date Range Bar**: Dynamically filter all analytical tabs in sync (`1D` latest market day, `3D`, `7D`, `15D` default, `30D`, `90D`, `All Time`, Custom date pickers) anchored to the latest trade date in the database.
 - **`⌘K` or `Ctrl+K`**: Open the global Command Palette from any page to jump to any symbol, broker, or tab in seconds.
 - **⭐ Persistent Watchlist**: Star symbols and brokers anywhere across the app. They stay pinned to your sticky top Watchlist bar across all sessions.
-- **📱 Progressive Web App (PWA)**: Install the web app on Android or iOS for full-screen mobile floorsheet tracking.
+- **📱 Progressive Web App (PWA) & Mobile Dock**: Install the web app on Android or iOS for full-screen offline-ready mobile floorsheet tracking with the 7-tab bottom navigation dock.
 - **📥 CSV Exports**: All major tables (Floorsheet, Symbols, Brokers, Script Analysis, Radar) support 1-click CSV data export for custom financial modeling.
 
 ---

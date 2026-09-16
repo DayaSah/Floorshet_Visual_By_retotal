@@ -61,7 +61,7 @@ Before exploring the tool, understand these four fundamental terms:
 
 ## 3. Step-by-Step Walkthrough of the Features
 
-When you open the **Script Analysis** tab (`/script-analysis`), you will see an intuitive control dashboard.
+When you open the **Script Analysis** tab (`/` or `/script-analysis` — the platform's default homepage), you will see an intuitive control dashboard.
 
 ```
 +-----------------------------------------------------------------------------------------+
@@ -80,7 +80,7 @@ Select the time period you want to investigate:
 - **⚡ Past 7 Days**: Ideal for short-term swing traders looking for immediate momentum or breakout accumulation.
 - **⚡ Past 15 Days** *(Default)*: The sweet spot for discovering multi-week institutional positioning.
 - **⚡ Past 30 Days**: Best for spotting steady, patient monthly accumulation patterns.
-- **All Time**: Analyzes the entire database history (July 2026 – September 2026).
+- **All Time**: Analyzes the entire database history.
 - **📅 Custom Range**: Allows you to enter specific `From` and `To` dates (e.g., right before an earnings announcement).
 
 > 💡 **Bonus Tip**: The URL automatically updates with your choices (e.g., `?symbol=NABIL&range=15d`). You can bookmark this link or send it to a friend, and it will open the exact same analysis!
@@ -97,17 +97,44 @@ Once you choose a stock, four top-level summary cards appear:
 
 ---
 
-### D. Smart Money Sentiment & Accumulation Index (AI/Algorithmic Score)
+### D. Smart Money Sentiment & Accumulation Index (Mathematical Engine)
 
-Directly below the KPIs, an automated quantitative engine analyzes the entire floorsheet to compute a **Smart Money Index (0 to 100)**:
-- **Score (0-100)**:
-  - `75 - 100`: **Strong Institutional Accumulation 🟢** (High smart money absorption)
-  - `60 - 74`: **Moderate Accumulation 🟢** (Steady, patient buying)
-  - `45 - 59`: **Neutral / Churning 🟡** (Two-sided intraday turnover)
-  - `30 - 44`: **Moderate Distribution 🟠** (Smart money trimming positions)
-  - `0 - 29`: **Heavy Institutional Distribution 🔴** (Aggressive smart money offloading)
-- **Plain-English Institutional Footprint Verdict**: A concise dynamic summary naming the lead buyers and sellers, total capital absorbed, and whether institutional demand dominates.
-- **Buyer vs. Seller Concentration**: Dual visual progress bars showing what percentage of total buy orders was captured by the Top 5 buyers versus Top 5 sellers (Pareto dominance).
+Directly below the KPIs, an automated quantitative algorithm calculates the **Smart Money Index (0 to 100)** to reveal whether institutions are accumulating or distributing.
+
+#### The 3 Mathematical Components:
+
+1. **Component 1: Concentration Delta (0 to 40 Points)**:
+   Measures asymmetric order capture (Pareto dominance):
+   - $\text{Buyer Conc} = (\sum_{i=1}^5 \text{BuyAmount}_i / \text{Total Buy Vol}) \times 100$
+   - $\text{Seller Conc} = (\sum_{i=1}^5 \text{SellAmount}_i / \text{Total Sell Vol}) \times 100$
+   - $\Delta_{\text{conc}} = \text{Buyer Conc} - \text{Seller Conc}$
+   - $\text{Points}_{\text{conc}} = \min(40, \max(0, 20 + \Delta_{\text{conc}} \times 0.8))$
+   - *Interpretation*: When top 5 buyers soak up 75%+ of buying while selling is dispersed across 40+ brokers, points max out at **40**.
+
+2. **Component 2: Net Absorption Balance (0 to 35 Points)**:
+   Measures the net monetary tug-of-war between top buyers and sellers:
+   - $\text{Net Ratio} = (\text{Top5 Net Inflow} - \text{Top5 Net Outflow}) / (\text{Top5 Net Inflow} + \text{Top5 Net Outflow})$
+   - $\text{Points}_{\text{abs}} = \min(35, \max(0, 17.5 + \text{Net Ratio} \times 17.5))$
+   - *Interpretation*: If lead buyers absorb all shares dumped into the market, this awards the maximum **35** points.
+
+3. **Component 3: Trajectory Trend Momentum (0 to 25 Points)**:
+   Tracks the daily cumulative holding curve of the lead accumulator (`TopBuyer[0]`):
+   - **25 Points**: Holdings expanded over the session ($\text{CumNet}_{\text{end}} > \text{CumNet}_{\text{start}}$).
+   - **5 Points**: Holdings contracted / unloaded ($\text{CumNet}_{\text{end}} < \text{CumNet}_{\text{start}}$).
+   - **12.5 Points**: Neutral holding pattern or insufficient days.
+
+#### Composite Score & Verdict Tiers:
+
+$$\text{Smart Money Index} = \text{round}\Big(\min\big(100, \max(5, \text{Points}_{\text{conc}} + \text{Points}_{\text{abs}} + \text{Points}_{\text{mom}})\big)\Big)$$
+
+- **`75 - 100`**: **Strong Institutional Accumulation 🟢** (Supply actively locked away)
+- **`60 - 74`**: **Moderate Accumulation 🔵** (Patient, steady accumulation)
+- **`45 - 59`**: **Neutral / Churning 🟡** (Two-sided intraday turnover)
+- **`30 - 44`**: **Moderate Distribution 🟠** (Institutions trimming into retail demand)
+- **`5 - 29`**: **Heavy Institutional Distribution 🔴** (Aggressive smart money liquidation)
+
+- **Plain-English Institutional Footprint Verdict**: Dynamically names the lead buyers/sellers, exact NPR capital absorbed, and market implications.
+- **Buyer vs. Seller Concentration**: Dual visual progress bars displaying the Pareto order capture percentage.
 
 ---
 
