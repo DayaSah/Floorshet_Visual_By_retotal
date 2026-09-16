@@ -1,27 +1,33 @@
 import { useEffect, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { Activity, Download, Flame, LayoutGrid, Table2, Users } from 'lucide-react'
+import { Activity, Download, FileSpreadsheet, Flame, Gamepad2, LayoutGrid, Table2, Users, X } from 'lucide-react'
 import { cn } from '../lib/shadcn/utils'
 
 interface NavItem {
   to: string
   label: string
   icon: any
+  color?: string
   badge?: boolean
 }
 
 const ITEMS: NavItem[] = [
-  { to: '/', label: 'Floorsheet', icon: Table2 },
+  { to: '/', label: 'Script', icon: FileSpreadsheet, color: 'text-emerald-400' },
+  { to: '/table', label: 'Table', icon: Table2 },
   { to: '/overview', label: 'Overview', icon: LayoutGrid },
-  { to: '/radar', label: 'Radar', icon: Flame, badge: true },
+  { to: '/radar', label: 'Radar', icon: Flame, color: 'text-warning', badge: true },
   { to: '/symbols', label: 'Symbols', icon: Activity },
   { to: '/brokers', label: 'Brokers', icon: Users },
+  { to: '/fun', label: 'Fun', icon: Gamepad2, color: 'text-pink-400' },
 ]
 
 export function MobileBottomNav() {
   const location = useLocation()
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
   const [installed, setInstalled] = useState(false)
+  const [bannerDismissed, setBannerDismissed] = useState(() =>
+    !!localStorage.getItem('pwa-banner-dismissed')
+  )
 
   useEffect(() => {
     const handleBeforeInstall = (e: Event) => {
@@ -32,10 +38,8 @@ export function MobileBottomNav() {
       setInstalled(true)
       setDeferredPrompt(null)
     }
-
     window.addEventListener('beforeinstallprompt', handleBeforeInstall)
     window.addEventListener('appinstalled', handleAppInstalled)
-
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstall)
       window.removeEventListener('appinstalled', handleAppInstalled)
@@ -46,37 +50,51 @@ export function MobileBottomNav() {
     if (!deferredPrompt) return
     deferredPrompt.prompt()
     const { outcome } = await deferredPrompt.userChoice
-    if (outcome === 'accepted') {
-      setDeferredPrompt(null)
-    }
+    if (outcome === 'accepted') setDeferredPrompt(null)
   }
+
+  const handleDismiss = () => {
+    setBannerDismissed(true)
+    localStorage.setItem('pwa-banner-dismissed', '1')
+  }
+
+  const showBanner = deferredPrompt && !installed && !bannerDismissed
 
   return (
     <>
-      {/* Optional Install Banner if prompt available */}
-      {deferredPrompt && !installed && (
-        <div className="md:hidden fixed bottom-16 left-3 right-3 z-40 p-2.5 rounded-xl bg-card/95 backdrop-blur-md border border-primary/40 shadow-xl flex items-center justify-between animate-in slide-in-from-bottom duration-300">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
-              <Download className="w-4 h-4" />
+      {/* PWA Install Banner */}
+      {showBanner && (
+        <div className="md:hidden fixed bottom-[68px] left-3 right-3 z-40 rounded-2xl bg-card/95 backdrop-blur-xl border border-emerald-500/30 shadow-2xl shadow-emerald-900/20 animate-in slide-in-from-bottom duration-300">
+          <div className="flex items-center gap-3 p-3">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500/20 to-sky-500/20 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
+              <img src="/icons/icon.svg" alt="app icon" className="w-7 h-7" />
             </div>
-            <div>
-              <p className="text-xs font-semibold text-foreground">Install Floorsheet App</p>
-              <p className="text-[10px] text-muted-foreground">Fast access directly from home screen</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold text-foreground">Install NEPSE Floorsheet</p>
+              <p className="text-[10px] text-muted-foreground leading-tight">Add to home screen — works offline, loads instantly</p>
+            </div>
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              <button
+                onClick={handleInstallClick}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-500 text-white text-[11px] font-bold shadow-md hover:bg-emerald-400 active:scale-95 transition-all cursor-pointer"
+              >
+                <Download className="w-3 h-3" />
+                Install
+              </button>
+              <button
+                onClick={handleDismiss}
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
-          <button
-            onClick={handleInstallClick}
-            className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold shadow-xs hover:bg-primary/90 transition-colors cursor-pointer"
-          >
-            Install
-          </button>
         </div>
       )}
 
-      {/* Sticky Mobile Dock */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/85 backdrop-blur-xl border-t border-border/60 pb-safe transition-all duration-300">
-        <div className="flex items-center justify-around px-2 py-1.5">
+      {/* Mobile Bottom Dock */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/90 backdrop-blur-xl border-t border-border/60 pb-safe">
+        <div className="flex items-center justify-around px-1 py-1">
           {ITEMS.map((item) => {
             const Icon = item.icon
             const isActive =
@@ -87,38 +105,33 @@ export function MobileBottomNav() {
                 key={item.to}
                 to={item.to}
                 end={item.to === '/'}
-                className={cn(
-                  'flex flex-col items-center justify-center flex-1 py-1 px-1 rounded-lg text-[10px] font-medium transition-all duration-200 relative group cursor-pointer',
-                  isActive
-                    ? 'text-primary font-semibold'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
+                className="flex flex-col items-center justify-center flex-1 py-1 px-0.5 rounded-xl text-[9px] font-medium transition-all duration-200 relative group cursor-pointer min-w-0"
               >
                 <div className="relative">
                   <div
                     className={cn(
-                      'p-1 rounded-lg transition-transform duration-200',
-                      isActive ? 'scale-110 bg-primary/10' : 'group-hover:scale-105'
+                      'p-1.5 rounded-xl transition-all duration-200',
+                      isActive ? 'bg-primary/15 scale-110' : 'group-hover:bg-accent group-active:scale-95'
                     )}
                   >
                     <Icon
                       className={cn(
                         'w-5 h-5 transition-colors',
                         isActive
-                          ? item.to === '/radar'
-                            ? 'text-warning fill-warning/20'
-                            : 'text-primary'
+                          ? (item.color ?? 'text-primary')
                           : 'text-muted-foreground'
                       )}
                     />
                   </div>
                   {item.badge && (
-                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-warning ring-2 ring-background animate-pulse" />
+                    <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-warning ring-1 ring-background animate-pulse" />
                   )}
                 </div>
-                <span className="mt-0.5 tracking-tight">{item.label}</span>
+                <span className={cn('mt-0.5 tracking-tight truncate w-full text-center', isActive ? (item.color ?? 'text-primary font-semibold') : 'text-muted-foreground')}>
+                  {item.label}
+                </span>
                 {isActive && (
-                  <span className="w-4 h-0.5 rounded-full bg-primary mt-0.5 transition-all" />
+                  <span className="w-3 h-0.5 rounded-full bg-current mt-0.5" />
                 )}
               </NavLink>
             )

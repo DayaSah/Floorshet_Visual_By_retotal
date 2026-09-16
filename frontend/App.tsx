@@ -78,10 +78,10 @@ export default function App() {
       <nav className="sticky top-0 z-30 border-b border-border/60 bg-background/70 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 px-6 py-2.5">
           <div className="flex items-center gap-2 overflow-x-auto py-0.5 scrollbar-none">
-            <NavTab to="/" icon={<Table2 className="w-4 h-4" />} label="Table" />
+            <NavTab to="/" icon={<FileSpreadsheet className="w-4 h-4 text-emerald-400" />} label="Script Analysis" />
+            <NavTab to="/table" icon={<Table2 className="w-4 h-4" />} label="Table" />
             <NavTab to="/overview" icon={<LayoutGrid className="w-4 h-4" />} label="Overview" />
             <NavTab to="/symbols" icon={<Activity className="w-4 h-4" />} label="Symbols" />
-            <NavTab to="/script-analysis" icon={<FileSpreadsheet className="w-4 h-4 text-emerald-400" />} label="Script Analysis" />
             <NavTab to="/brokers" icon={<Users className="w-4 h-4" />} label="Brokers" />
             <NavTab to="/radar" icon={<Flame className="w-4 h-4 text-warning" />} label="Market Radar" />
             <NavTab to="/broker-network" icon={<Network className="w-4 h-4" />} label="Broker Network" />
@@ -110,7 +110,8 @@ export default function App() {
       <div className="relative z-10 pb-20 md:pb-0">
         <Suspense fallback={<PageFallback />}>
           <Routes>
-            <Route path="/" element={<Floorsheet />} />
+            <Route path="/" element={<ScriptAnalysis />} />
+            <Route path="/table" element={<Floorsheet />} />
             <Route path="/overview" element={<FloorsheetVisualization />} />
             <Route path="/symbols" element={<SymbolAnalysis />} />
             <Route path="/script-analysis" element={<ScriptAnalysis />} />

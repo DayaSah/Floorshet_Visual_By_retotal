@@ -1,18 +1,55 @@
 {
   "name": "NEPSE Floorsheet Visualizer",
-  "short_name": "Floorsheet",
-  "description": "High-performance interactive visualizer for Nepal Stock Exchange (NEPSE) floorsheet trading data, smart money accumulation, and whale trades.",
+  "short_name": "NEPSE FS",
+  "description": "High-performance smart money tracker for Nepal Stock Exchange — floorsheet analysis, whale trades, broker accumulation & more.",
   "start_url": "/",
+  "id": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "background_color": "#0B0F19",
   "theme_color": "#0B0F19",
   "orientation": "portrait-primary",
+  "categories": ["finance", "business"],
+  "lang": "en",
+  "dir": "ltr",
+  "scope": "/",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icons/icon.svg",
-      "sizes": "192x192 512x512",
+      "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Script Analysis",
+      "short_name": "Script",
+      "description": "Smart money & broker accumulation tracker",
+      "url": "/",
+      "icons": [{ "src": "/icons/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Market Radar",
+      "short_name": "Radar",
+      "description": "Live whale trades & internal crossings",
+      "url": "/radar",
+      "icons": [{ "src": "/icons/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Fun Lounge",
+      "short_name": "Fun",
+      "description": "Trivia, games & NEPSE fortune wheel",
+      "url": "/fun",
+      "icons": [{ "src": "/icons/icon.svg", "sizes": "any" }]
     }
   ]
 }
