@@ -24,6 +24,7 @@ import {
 } from '@tanstack/react-table'
 import { ArrowDown, ArrowUp, ArrowUpDown, Building2, Download, RefreshCw, Star, TrendingDown, TrendingUp, Wallet } from 'lucide-react'
 import { useGetSymbolAnalysis } from '../hooks/backend/floorsheet'
+import { useDateRange } from '../contexts/DateRangeContext'
 import { Button } from '../lib/shadcn/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../lib/shadcn/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../lib/shadcn/table'
@@ -75,21 +76,21 @@ export default function SymbolAnalysis() {
     setSelectedSymbol(symbol)
     if (symbol) {
       setSearchParams({ symbol })
-      trigger({ symbol })
+      trigger({ symbol, startDate, endDate })
     } else {
       setSearchParams({})
-      trigger()
+      trigger({ startDate, endDate })
     }
   }
 
   useEffect(() => {
     if (urlSymbol) {
       setSelectedSymbol(urlSymbol)
-      trigger({ symbol: urlSymbol })
+      trigger({ symbol: urlSymbol, startDate, endDate })
     } else {
-      trigger()
+      trigger({ startDate, endDate })
     }
-  }, [urlSymbol])
+  }, [urlSymbol, startDate, endDate])
 
   const ranking: RankingPoint[] = useMemo(
     () =>

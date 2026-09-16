@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { getPool, getCachedOrFetch, setCacheHeaders } from '../_db'
+import { getPool, getCachedOrFetch, setCacheHeaders, parseDateRange } from '../_db'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
@@ -7,20 +7,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const page = Math.max(Number(req.query.page) || 1, 1)
     const offset = (page - 1) * limit
     const skipCache = req.query._skip_cache === '1'
+    const { condition, params, cacheSuffix } = parseDateRange(req.query)
 
-    const cacheKey = `floorsheet_raw_${limit}_p${page}`
+    const cacheKey = `floorsheet_raw_${limit}_p${page}_${cacheSuffix}`
     const data = await getCachedOrFetch(
       cacheKey,
-      1800, // 30 minutes cache
+      1800,
       async () => {
         const pool = getPool()
         const query = `
           SELECT contract_id, symbol, buyer_broker, seller_broker, quantity, rate, amount, trade_time
           FROM floorsheet_raw
+          WHERE 1=1 ${condition}
           ORDER BY trade_time DESC
-          LIMIT $1 OFFSET $2
+          LIMIT $${params.length + 1} OFFSET $${params.length + 2}
         `
-        const result = await pool.query(query, [limit, offset])
+        const result = await pool.query(query, [...params, limit, offset])
         return result.rows
       },
       skipCache

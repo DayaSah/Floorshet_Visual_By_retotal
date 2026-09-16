@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Clock, RefreshCw } from 'lucide-react'
 import { useGetTimePatterns } from '../hooks/backend/floorsheet'
+import { useDateRange } from '../contexts/DateRangeContext'
 import { Button } from '../lib/shadcn/button'
 import { GlassCard } from '../components/GlassCard'
 import { KpiCard } from '../components/KpiCard'
@@ -22,10 +23,11 @@ interface DowRow {
 
 export default function TimePatterns() {
   const { data, loading, error, dataAccessErrors, trigger } = useGetTimePatterns()
+  const { startDate, endDate } = useDateRange()
 
   useEffect(() => {
-    trigger()
-  }, [])
+    trigger({ startDate, endDate })
+  }, [startDate, endDate])
 
   const minuteBuckets = useMemo(
     () =>

@@ -11,6 +11,7 @@ import {
 } from '@tanstack/react-table'
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, Download, RefreshCw, Repeat, Star, Waves, X } from 'lucide-react'
 import { useGetFloorsheetRaw } from '../hooks/backend/floorsheet'
+import { useDateRange } from '../contexts/DateRangeContext'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../lib/shadcn/table'
 import { Button } from '../lib/shadcn/button'
 import { Input } from '../lib/shadcn/input'
@@ -36,26 +37,28 @@ export default function Floorsheet() {
   const [sorting, setSorting] = useState<SortingState>([{ id: 'trade_time', desc: true }])
   const [symbolFilter, setSymbolFilter] = useState('')
   const [brokerFilter, setBrokerFilter] = useState('')
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
+  const [localStartDate, setLocalStartDate] = useState('')
+  const [localEndDate, setLocalEndDate] = useState('')
   const [serverPage, setServerPage] = useState(1)
   const [watchlistOnly, setWatchlistOnly] = useState(false)
   const [whalesOnly, setWhalesOnly] = useState(false)
   const [crossingsOnly, setCrossingsOnly] = useState(false)
   const [watchlist, setWatchlist] = useState(getWatchlist)
+  const { startDate: globalStartDate, endDate: globalEndDate } = useDateRange()
 
   useEffect(() => {
     return subscribeWatchlist(setWatchlist)
   }, [])
 
   useEffect(() => {
-    trigger()
-  }, [])
+    setServerPage(1)
+    trigger({ startDate: globalStartDate, endDate: globalEndDate })
+  }, [globalStartDate, globalEndDate])
 
   const handleServerPageChange = (newPage: number) => {
     if (newPage < 1) return
     setServerPage(newPage)
-    trigger({ page: newPage })
+    trigger({ page: newPage, startDate: globalStartDate, endDate: globalEndDate })
     table.setPageIndex(0)
   }
 
@@ -76,12 +79,9 @@ export default function Floorsheet() {
       const matchesSymbol = symbolQuery === '' || row.symbol.toUpperCase().includes(symbolQuery)
       const matchesBroker =
         brokerQuery === '' || row.buyer_broker === brokerQuery || row.seller_broker === brokerQuery
-      const tradeDate = row.trade_time.slice(0, 10)
-      const matchesStart = startDate === '' || tradeDate >= startDate
-      const matchesEnd = endDate === '' || tradeDate <= endDate
-      return matchesSymbol && matchesBroker && matchesStart && matchesEnd
+      return matchesSymbol && matchesBroker
     })
-  }, [data, symbolFilter, brokerFilter, startDate, endDate, watchlistOnly, whalesOnly, crossingsOnly, watchlist])
+  }, [data, symbolFilter, brokerFilter, watchlistOnly, whalesOnly, crossingsOnly, watchlist])
 
   const columns = useMemo<ColumnDef<FloorsheetRow>[]>(
     () => [
@@ -269,8 +269,8 @@ export default function Floorsheet() {
               <Input
                 id="start-date-filter"
                 type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                value={localStartDate}
+                onChange={(e) => setLocalStartDate(e.target.value)}
                 className="w-40 bg-background/60"
               />
             </div>
@@ -281,8 +281,8 @@ export default function Floorsheet() {
               <Input
                 id="end-date-filter"
                 type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                value={localEndDate}
+                onChange={(e) => setLocalEndDate(e.target.value)}
                 className="w-40 bg-background/60"
               />
             </div>
@@ -322,15 +322,15 @@ export default function Floorsheet() {
               <Repeat className="w-3.5 h-3.5" />
               Crossings
             </Button>
-            {symbolFilter || brokerFilter || startDate || endDate || watchlistOnly || whalesOnly || crossingsOnly ? (
+            {symbolFilter || brokerFilter || localStartDate || localEndDate || watchlistOnly || whalesOnly || crossingsOnly ? (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => {
                   setSymbolFilter('')
                   setBrokerFilter('')
-                  setStartDate('')
-                  setEndDate('')
+                  setLocalStartDate('')
+                  setLocalEndDate('')
                   setWatchlistOnly(false)
                   setWhalesOnly(false)
                   setCrossingsOnly(false)

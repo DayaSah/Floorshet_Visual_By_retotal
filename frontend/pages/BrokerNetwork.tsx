@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Network, RefreshCw } from 'lucide-react'
 import { useGetBrokerNetwork } from '../hooks/backend/floorsheet'
+import { useDateRange } from '../contexts/DateRangeContext'
 import { Button } from '../lib/shadcn/button'
 import { GlassCard } from '../components/GlassCard'
 import { KpiCard } from '../components/KpiCard'
@@ -33,10 +34,11 @@ function heatColor(ratio: number): string {
 
 export default function BrokerNetwork() {
   const { data, loading, error, dataAccessErrors, trigger } = useGetBrokerNetwork()
+  const { startDate, endDate } = useDateRange()
 
   useEffect(() => {
-    trigger()
-  }, [])
+    trigger({ startDate, endDate })
+  }, [startDate, endDate])
 
   const topPairs = useMemo(
     () =>

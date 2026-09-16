@@ -14,6 +14,7 @@ import {
 } from 'recharts'
 import { Activity, ArrowRightLeft, RefreshCw, Wallet } from 'lucide-react'
 import { useGetFloorsheetStats } from '../hooks/backend/floorsheet'
+import { useDateRange } from '../contexts/DateRangeContext'
 import { Button } from '../lib/shadcn/button'
 import { GlassCard } from '../components/GlassCard'
 import { KpiCard } from '../components/KpiCard'
@@ -39,10 +40,11 @@ interface SymbolPoint {
 export default function FloorsheetVisualization() {
   const navigate = useNavigate()
   const { data, loading, error, dataAccessErrors, trigger } = useGetFloorsheetStats()
+  const { startDate, endDate } = useDateRange()
 
   useEffect(() => {
-    trigger()
-  }, [])
+    trigger({ startDate, endDate })
+  }, [startDate, endDate])
 
   const daily: DailyPoint[] = useMemo(
     () =>

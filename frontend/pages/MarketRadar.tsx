@@ -32,6 +32,7 @@ import {
   Zap,
 } from 'lucide-react'
 import { useGetMarketRadar } from '../hooks/backend/floorsheet'
+import { useDateRange } from '../contexts/DateRangeContext'
 import { Button } from '../lib/shadcn/button'
 import { Input } from '../lib/shadcn/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../lib/shadcn/table'
@@ -82,6 +83,7 @@ interface TopCrossingBrokerRow {
 
 export default function MarketRadar() {
   const { data, loading, error, dataAccessErrors, trigger } = useGetMarketRadar()
+  const { startDate, endDate } = useDateRange()
   const [activeTab, setActiveTab] = useState<'whales' | 'crossings' | 'concentration'>('whales')
   const [whaleThreshold, setWhaleThreshold] = useState<number>(500000)
   const [searchQuery, setSearchQuery] = useState('')
@@ -94,8 +96,8 @@ export default function MarketRadar() {
   }, [])
 
   useEffect(() => {
-    trigger()
-  }, [])
+    trigger({ startDate, endDate })
+  }, [startDate, endDate])
 
   // 1. Processed Whale Trades
   const filteredWhales = useMemo(() => {

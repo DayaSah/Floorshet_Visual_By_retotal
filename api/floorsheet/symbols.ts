@@ -1,15 +1,16 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { getPool, getCachedOrFetch, setCacheHeaders } from '../_db'
+import { getPool, getCachedOrFetch, setCacheHeaders, parseDateRange } from '../_db'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const symbol = req.query.symbol ? String(req.query.symbol).trim().toUpperCase() : ''
     const skipCache = req.query._skip_cache === '1'
     const pool = getPool()
+    const { condition, params: dateParams, cacheSuffix } = parseDateRange(req.query)
 
-    // 1. Fetch ranking (cached for 24 hours)
+    // 1. Fetch ranking (cached per date range)
     const ranking = await getCachedOrFetch(
-      'symbol_ranking',
+      `symbol_ranking_${cacheSuffix}`,
       86400,
       async () => {
         const rankingQuery = `
@@ -18,11 +19,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                    ROW_NUMBER() OVER (PARTITION BY symbol ORDER BY trade_time ASC) as rn_first,
                    ROW_NUMBER() OVER (PARTITION BY symbol ORDER BY trade_time DESC) as rn_last
             FROM floorsheet_raw
+            WHERE 1=1 ${condition}
           ),
           agg AS (
             SELECT symbol, SUM(amount) as total_amount, SUM(quantity) as total_quantity, COUNT(*) as trade_count,
                    MIN(rate) as min_rate, MAX(rate) as max_rate
-            FROM floorsheet_raw GROUP BY symbol
+            FROM floorsheet_raw WHERE 1=1 ${condition} GROUP BY symbol
           ),
           first_rate AS (SELECT symbol, rate as first_rate FROM ordered WHERE rn_first = 1),
           last_rate AS (SELECT symbol, rate as last_rate FROM ordered WHERE rn_last = 1)
@@ -34,26 +36,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           JOIN last_rate l ON a.symbol = l.symbol
           ORDER BY a.total_amount DESC
         `
-        const result = await pool.query(rankingQuery)
+        const result = await pool.query(rankingQuery, dateParams)
         return result.rows
       },
       skipCache
     )
 
-    // 2. If specific symbol requested, fetch its trade history (indexed by idx_symbol_time)
+    // 2. If specific symbol requested, fetch its trade history
     let trades: any[] = []
     if (symbol) {
+      const symParams = [symbol, ...dateParams.slice(0)]
+      const symCondition = condition.replace(/\$(\d+)/g, (_, n) => `$${Number(n) + 1}`)
       trades = await getCachedOrFetch(
-        `symbol_trades_${symbol}`,
+        `symbol_trades_${symbol}_${cacheSuffix}`,
         14400,
         async () => {
           const tradesQuery = `
             SELECT trade_time, rate, quantity, amount, buyer_broker, seller_broker
             FROM floorsheet_raw
-            WHERE symbol = $1
+            WHERE symbol = $1 ${symCondition}
             ORDER BY trade_time ASC
           `
-          const result = await pool.query(tradesQuery, [symbol])
+          const result = await pool.query(tradesQuery, symParams)
           return result.rows
         },
         skipCache

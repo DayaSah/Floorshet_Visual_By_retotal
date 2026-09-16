@@ -7,6 +7,8 @@ import { ThemeToggle } from './components/ThemeToggle'
 import { CommandPalette } from './components/CommandPalette'
 import { WatchlistBar } from './components/WatchlistBar'
 import { MobileBottomNav } from './components/MobileBottomNav'
+import { DateRangeBar } from './components/DateRangeBar'
+import { DateRangeProvider } from './contexts/DateRangeContext'
 import './styles/effects.css'
 
 const Floorsheet = lazy(() => import('./pages/Floorsheet'))
@@ -64,6 +66,7 @@ export default function App() {
   }, [])
 
   return (
+    <DateRangeProvider>
     <div className="relative min-h-screen bg-background isolate overflow-x-hidden">
       {/* Decorative ambient background for the glassmorphism effect */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
@@ -102,6 +105,7 @@ export default function App() {
           </div>
         </div>
       </nav>
+      <DateRangeBar />
       <WatchlistBar onOpenSearch={() => setPaletteOpen(true)} />
       <div className="relative z-10 pb-20 md:pb-0">
         <Suspense fallback={<PageFallback />}>
@@ -123,5 +127,6 @@ export default function App() {
       <MobileBottomNav />
       <CommandPalette isOpen={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </div>
+    </DateRangeProvider>
   )
 }

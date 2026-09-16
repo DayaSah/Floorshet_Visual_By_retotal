@@ -65,3 +65,28 @@ export function setCacheHeaders(res: any, sMaxAge = 86400, maxAge = 300) {
     `public, max-age=${maxAge}, s-maxage=${sMaxAge}, stale-while-revalidate=604800`
   )
 }
+
+/**
+ * Parses startDate/endDate query params and returns SQL condition + params + cache suffix.
+ * Returns empty condition if no dates provided (= query all data).
+ */
+export function parseDateRange(
+  query: Record<string, any>,
+  existingParams: any[] = [],
+  tradeTimeColumn = 'trade_time'
+): { condition: string; params: any[]; cacheSuffix: string } {
+  const startDate = query.startDate ? String(query.startDate).trim() : ''
+  const endDate = query.endDate ? String(query.endDate).trim() : ''
+
+  if (!startDate || !endDate) {
+    return { condition: '', params: [...existingParams], cacheSuffix: 'all' }
+  }
+
+  const startIdx = existingParams.length + 1
+  const endIdx = existingParams.length + 2
+  return {
+    condition: `AND ${tradeTimeColumn}::date >= $${startIdx} AND ${tradeTimeColumn}::date <= $${endIdx}`,
+    params: [...existingParams, startDate, endDate],
+    cacheSuffix: `${startDate}_${endDate}`,
+  }
+}

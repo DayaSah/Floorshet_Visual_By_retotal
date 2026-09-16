@@ -1,14 +1,15 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { getPool, getCachedOrFetch, setCacheHeaders } from '../_db'
+import { getPool, getCachedOrFetch, setCacheHeaders, parseDateRange } from '../_db'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const skipCache = req.query._skip_cache === '1'
-    const cacheKey = 'time_patterns'
+    const { condition, params, cacheSuffix } = parseDateRange(req.query)
+    const cacheKey = `time_patterns_${cacheSuffix}`
 
     const data = await getCachedOrFetch(
       cacheKey,
-      86400, // 24 hours cache
+      86400,
       async () => {
         const pool = getPool()
         const [minuteResult, dowResult] = await Promise.all([
@@ -17,17 +18,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                    COUNT(*) as trade_count,
                    SUM(amount) as total_amount
             FROM floorsheet_raw
+            WHERE 1=1 ${condition}
             GROUP BY bucket_minute
             ORDER BY bucket_minute ASC
-          `),
+          `, params),
           pool.query(`
             SELECT EXTRACT(DOW FROM trade_time) as dow,
                    COUNT(*) as trade_count,
                    SUM(amount) as total_amount
             FROM floorsheet_raw
+            WHERE 1=1 ${condition}
             GROUP BY dow
             ORDER BY dow ASC
-          `),
+          `, params),
         ])
 
         return {

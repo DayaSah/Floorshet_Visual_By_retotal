@@ -1,14 +1,15 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { getPool, getCachedOrFetch, setCacheHeaders } from '../_db'
+import { getPool, getCachedOrFetch, setCacheHeaders, parseDateRange } from '../_db'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const skipCache = req.query._skip_cache === '1'
-    const cacheKey = 'trade_size_analysis'
+    const { condition, params, cacheSuffix } = parseDateRange(req.query)
+    const cacheKey = `trade_size_analysis_${cacheSuffix}`
 
     const data = await getCachedOrFetch(
       cacheKey,
-      86400, // 24 hours cache
+      86400,
       async () => {
         const pool = getPool()
         const [sizeResult, blockDealsResult] = await Promise.all([
@@ -25,14 +26,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               COUNT(*) as trade_count,
               SUM(amount) as total_amount
             FROM floorsheet_raw
+            WHERE 1=1 ${condition}
             GROUP BY bucket
-          `),
+          `, params),
           pool.query(`
             SELECT contract_id, symbol, buyer_broker, seller_broker, quantity, rate, amount, trade_time
             FROM floorsheet_raw
+            WHERE 1=1 ${condition}
             ORDER BY amount DESC
             LIMIT 25
-          `),
+          `, params),
         ])
 
         return {

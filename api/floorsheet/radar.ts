@@ -1,35 +1,33 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { getPool, getCachedOrFetch, setCacheHeaders } from '../_db'
+import { getPool, getCachedOrFetch, setCacheHeaders, parseDateRange } from '../_db'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const skipCache = req.query._skip_cache === '1'
-    const cacheKey = 'market_radar_analysis'
+    const { condition, params, cacheSuffix } = parseDateRange(req.query)
+    const cacheKey = `market_radar_analysis_${cacheSuffix}`
 
     const data = await getCachedOrFetch(
       cacheKey,
-      86400, // 24 hours cache
+      86400,
       async () => {
         const pool = getPool()
         const [whalesResult, crossingsResult, topWhaleSymbolsResult, topCrossingBrokersResult, statsResult] =
           await Promise.all([
-            // 1. Largest whale trades (>= 500k)
             pool.query(`
               SELECT contract_id, symbol, buyer_broker, seller_broker, quantity, rate, amount, trade_time
               FROM floorsheet_raw
-              WHERE amount >= 500000
+              WHERE amount >= 500000 ${condition}
               ORDER BY amount DESC
               LIMIT 100
-            `),
-            // 2. Internal crossings (buyer_broker = seller_broker)
+            `, params),
             pool.query(`
               SELECT contract_id, symbol, buyer_broker, seller_broker, quantity, rate, amount, trade_time
               FROM floorsheet_raw
-              WHERE buyer_broker = seller_broker
+              WHERE buyer_broker = seller_broker ${condition}
               ORDER BY amount DESC
               LIMIT 100
-            `),
-            // 3. Top symbols by whale money inflow
+            `, params),
             pool.query(`
               SELECT symbol,
                      COUNT(*) as whale_trades,
@@ -37,24 +35,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                      SUM(quantity) as whale_qty,
                      MAX(amount) as max_trade
               FROM floorsheet_raw
-              WHERE amount >= 500000
+              WHERE amount >= 500000 ${condition}
               GROUP BY symbol
               ORDER BY whale_amount DESC
               LIMIT 10
-            `),
-            // 4. Top brokers engaging in internal crossings
+            `, params),
             pool.query(`
               SELECT buyer_broker as broker,
                      COUNT(*) as cross_count,
                      SUM(amount) as cross_amount,
                      SUM(quantity) as cross_qty
               FROM floorsheet_raw
-              WHERE buyer_broker = seller_broker
+              WHERE buyer_broker = seller_broker ${condition}
               GROUP BY buyer_broker
               ORDER BY cross_amount DESC
               LIMIT 10
-            `),
-            // 5. Radar summary KPIs
+            `, params),
             pool.query(`
               SELECT
                 COUNT(*) FILTER (WHERE amount >= 1000000) as whale_count_1m,
@@ -63,7 +59,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 COALESCE(SUM(amount) FILTER (WHERE buyer_broker = seller_broker), 0) as cross_volume,
                 COALESCE(MAX(amount), 0) as max_single_trade
               FROM floorsheet_raw
-            `),
+              WHERE 1=1 ${condition}
+            `, params),
           ])
 
         return {

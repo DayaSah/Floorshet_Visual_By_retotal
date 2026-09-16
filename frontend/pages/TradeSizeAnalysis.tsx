@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
 import { useGetTradeSizeAnalysis } from '../hooks/backend/floorsheet'
+import { useDateRange } from '../contexts/DateRangeContext'
 import { Button } from '../lib/shadcn/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../lib/shadcn/table'
 import { GlassCard } from '../components/GlassCard'
@@ -32,10 +33,11 @@ const BLOCK_DEAL_THRESHOLD = 1000000
 
 export default function TradeSizeAnalysis() {
   const { data, loading, error, dataAccessErrors, trigger } = useGetTradeSizeAnalysis()
+  const { startDate, endDate } = useDateRange()
 
   useEffect(() => {
-    trigger()
-  }, [])
+    trigger({ startDate, endDate })
+  }, [startDate, endDate])
 
   const sizeDistribution = useMemo(() => {
     const rows = (data?.sizeDistribution ?? []) as SizeBucketRow[]

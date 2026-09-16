@@ -22,6 +22,7 @@ import {
 } from '@tanstack/react-table'
 import { ArrowDown, ArrowUp, ArrowUpDown, Briefcase, Download, RefreshCw, Star, TrendingDown, TrendingUp, Users } from 'lucide-react'
 import { useGetBrokerAnalysis } from '../hooks/backend/floorsheet'
+import { useDateRange } from '../contexts/DateRangeContext'
 import { Button } from '../lib/shadcn/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../lib/shadcn/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../lib/shadcn/table'
