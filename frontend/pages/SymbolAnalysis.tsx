@@ -61,6 +61,7 @@ interface RankingPoint {
 
 export default function SymbolAnalysis() {
   const { data, loading, error, dataAccessErrors, trigger } = useGetSymbolAnalysis()
+  const { startDate, endDate } = useDateRange()
   const [searchParams, setSearchParams] = useSearchParams()
   const urlSymbol = searchParams.get('symbol')?.trim().toUpperCase() || ''
   const [selectedSymbol, setSelectedSymbol] = useState<string>(urlSymbol)

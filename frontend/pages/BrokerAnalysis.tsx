@@ -59,6 +59,7 @@ interface BrokerPoint {
 
 export default function BrokerAnalysis() {
   const { data, loading, error, dataAccessErrors, trigger } = useGetBrokerAnalysis()
+  const { startDate, endDate } = useDateRange()
   const [searchParams, setSearchParams] = useSearchParams()
   const urlBroker = searchParams.get('broker')?.trim() || ''
   const [selectedBroker, setSelectedBroker] = useState<string>(urlBroker)
@@ -74,21 +75,21 @@ export default function BrokerAnalysis() {
     setSelectedBroker(broker)
     if (broker) {
       setSearchParams({ broker })
-      trigger({ broker })
+      trigger({ broker, startDate, endDate })
     } else {
       setSearchParams({})
-      trigger()
+      trigger({ startDate, endDate })
     }
   }
 
   useEffect(() => {
     if (urlBroker) {
       setSelectedBroker(urlBroker)
-      trigger({ broker: urlBroker })
+      trigger({ broker: urlBroker, startDate, endDate })
     } else {
-      trigger()
+      trigger({ startDate, endDate })
     }
-  }, [urlBroker])
+  }, [urlBroker, startDate, endDate])
 
   const ranking: BrokerPoint[] = useMemo(
     () =>
